@@ -1,2 +1,6 @@
-**/data/
+# Ignore any .DS_Store file
 .DS_Store
+
+# Ignore "data/" directories at root and recursively
+/data/
+/**/data/
