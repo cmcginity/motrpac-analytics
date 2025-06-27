@@ -10,8 +10,11 @@
 __pycache__/
 *.pyc
 
-# Ignore .env
+# Ignore private files
 .env
+.cursor*
+/planning/
+
 
 # Ignore google auth files
 token.json
