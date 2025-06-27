@@ -4,3 +4,17 @@
 # Ignore "data/" directories at root and recursively
 /data/
 /**/data/
+
+# Ignore any temp files
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+
+# Ignore .env
+.env
+
+# Ignore google auth files
+token.json
+credentials.json
+
+
