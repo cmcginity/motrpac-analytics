@@ -1,0 +1,11 @@
+drive:
+  root_output_folder_id: "1ifTc2w4dUE8SDreYM7bIS1kewdvS4AQH"
+slides:
+  presentation_id: "12bzFoK1o5ToIEPrfhbBbQ5IIHUogmVN3epSlh9auRh0"
+
+export_local_output: true
+local_base_output_dir: "output"
+
+plotting:
+  dpi: 300 # Dots per inch for high-quality figures
+  palette: "viridis"

@@ -26,7 +26,7 @@ CONFIG = {
     "significance_threshold": 0.05,
     "cluster_range": list(range(3, 16)),
     "num_random_seeds": 1,
-    "use_precomputed_seeds": False,
+    "use_precomputed_seeds": True,
     "explicit_seeds": [19805, 15184, 98839, 23642, 57386, 6259, 55376, 9620, 88540, 57914, 55293, 96857, 7553, 82196, 20470, 96857, 72936, 72936, 26744, 99338, 60150, 55293, 7553, 90714, 60218, 59272],
     "explicit_cluster_choice": {
         "male": {
@@ -578,6 +578,11 @@ def run_pathway_enrichment(feature_ids, labels, optimal_k, output_dir, tissue, s
     if 'geneId' not in merged_df.columns:
         merged_df['geneId'] = pd.NA
 
+    # Save merged df
+    csv_path = os.path.join(output_dir, f"{tissue}_{sex}_all_clusters_genes.csv")
+    merged_df.to_csv(csv_path, index=False)
+    print(f"\nSaved cluster genes to {csv_path}")
+    
     # Perform pathway enrichment for each cluster
     gp = GProfiler(return_dataframe=True, user_agent='motrpac_temporal_analysis')
     enrichment_results_by_cluster = {}
@@ -627,7 +632,7 @@ def run_pathway_enrichment(feature_ids, labels, optimal_k, output_dir, tissue, s
         pickle.dump(enrichment_results_by_cluster, f)
     print(f"Saved enrichment dictionary to {pickle_path}")
         
-    return enrichment_results_by_cluster
+    return enrichment_results_by_cluster, merged_df
 
 def postprocess_enrichment_results(
                 enrichment_results_by_cluster,
@@ -697,14 +702,14 @@ def postprocess_enrichment_results(
 
     return processed_results
 
-def plot_trajectories_with_wordclouds(data_with_clusters, processed_df, centroids, enrichment_results, output_dir, tissue, sex, optimal_k):
+def plot_trajectories_with_wordclouds(data_with_clusters, processed_df, centroids, enrichment_results, merged_df, output_dir, tissue, sex, optimal_k):
     """Plots cluster trajectories with word clouds of enriched pathways in a grid."""
     sns.set_style("whitegrid")
     sns.set_context("paper", font_scale=1.2)
     palette = sns.color_palette(CONFIG["palette"], optimal_k)
     
     n_rows = optimal_k
-    fig, axes = plt.subplots(n_rows, 2, figsize=(12, 4.5 * n_rows), gridspec_kw={'width_ratios': [2, 1]})
+    fig, axes = plt.subplots(n_rows, 3, figsize=(18, 4.5 * n_rows), gridspec_kw={'width_ratios': [2, 1, 1]})
 
     plot_data = data_with_clusters.copy()
     plot_data.replace([np.inf, -np.inf], np.nan, inplace=True)
@@ -712,7 +717,8 @@ def plot_trajectories_with_wordclouds(data_with_clusters, processed_df, centroid
 
     for i in range(optimal_k):
         ax_traj = axes[i, 0] if n_rows > 1 else axes[0]
-        ax_wc = axes[i, 1] if n_rows > 1 else axes[1]
+        ax_gene_wc = axes[i, 1] if n_rows > 1 else axes[1]
+        ax_pathway_wc = axes[i, 2] if n_rows > 1 else axes[2]
         
         # Trajectory plot
         cluster_data = plot_data[plot_data["cluster"] == i]
@@ -741,8 +747,27 @@ def plot_trajectories_with_wordclouds(data_with_clusters, processed_df, centroid
         else:
             ax_traj.set_xlabel("")
         
-        # Word cloud
-        ax_wc.axis("off")
+        # Gene Word cloud
+        ax_gene_wc.axis("off")
+        genes_for_cluster = merged_df[merged_df['cluster_assignment'] == i]
+        gene_names = genes_for_cluster['gene_name'].replace('NA', np.nan).dropna().tolist()
+        if gene_names:
+            text = " ".join(gene_names)
+            wordcloud = WordCloud(
+                background_color="white",
+                width=400,
+                height=300,
+                colormap=CONFIG["palette"],
+                max_words=30,
+                contour_width=1,
+                contour_color='steelblue',
+                max_font_size=100,
+            ).generate(text)
+            ax_gene_wc.imshow(wordcloud, interpolation='bilinear')
+            ax_gene_wc.set_title(f"Top Genes ({len(gene_names)})")
+
+        # Pathway Word cloud
+        ax_pathway_wc.axis("off")
         if i in enrichment_results and not enrichment_results[i].empty:
             terms = enrichment_results[i]['name'].dropna().tolist()
             text = " ".join(terms)
@@ -758,8 +783,8 @@ def plot_trajectories_with_wordclouds(data_with_clusters, processed_df, centroid
                     max_font_size=100,
                     # random_state=42
                 ).generate(text)
-                ax_wc.imshow(wordcloud, interpolation='bilinear')
-                ax_wc.set_title(f"Top Enriched Pathways ({len(terms)})")
+                ax_pathway_wc.imshow(wordcloud, interpolation='bilinear')
+                ax_pathway_wc.set_title(f"Top Enriched Pathways ({len(terms)})")
 
     fig.suptitle(f"Cluster Analysis for {sex.capitalize()} {tissue.capitalize()}: Trajectories and Pathway Enrichment", fontsize=16)
     plt.tight_layout(rect=[0, 0.03, 1, 0.96])
@@ -807,7 +832,7 @@ def main():
         plot_individual_clusters(data_with_clusters, processed_df, centroids, output_dir, CONFIG["tissue"], sex, optimal_k)
         plot_cluster_centroids_array(data_with_clusters, processed_df, centroids, output_dir, CONFIG["tissue"], sex, optimal_k)
 
-        enrichment_results = run_pathway_enrichment(processed_df.index, labels, optimal_k, output_dir, CONFIG["tissue"], sex)
+        enrichment_results, merged_genes_df = run_pathway_enrichment(processed_df.index, labels, optimal_k, output_dir, CONFIG["tissue"], sex)
         
         if enrichment_results:
             
@@ -830,6 +855,7 @@ def main():
                 processed_df,
                 centroids,
                 processed_enrichment_results,
+                merged_genes_df,
                 output_dir,
                 CONFIG["tissue"],
                 sex,
