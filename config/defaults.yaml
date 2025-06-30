@@ -10,5 +10,5 @@ export_local_output: true
 local_base_output_dir: "output"
 
 plotting:
-  dpi: 300 # Dots per inch for high-quality figures
+  dpi: 200 # Dots per inch for high-quality figures
   palette: "viridis"

@@ -1,6 +1,8 @@
 import io
 import os
 import pickle
+import gc
+import psutil
 import pandas as pd
 import polars as pl
 import numpy as np
@@ -74,6 +76,10 @@ def load_and_preprocess_data(file_buffer, config, sex):
             .filter(pl.col(p_val_col).min().over(feature_col) < significance_threshold) # Keep all timepoints for features that are significant at any point
             .collect()
         )
+
+        # clear memory of df_pl
+        del df_pl
+        gc.collect()
         
         # Convert to pandas at the end for compatibility with the rest of the script.
         df_sex = df_filtered_pl.to_pandas()
@@ -999,11 +1005,34 @@ def plot_trajectories_with_wordclouds(data_with_clusters, processed_df, centroid
         gene_names = genes_for_cluster['gene_name'].replace('NA', np.nan).dropna().str.strip().tolist()
         if gene_names:
             gene_freq = Counter(gene_names)
+            
+            # Determine frequency range for color mapping
+            if gene_freq:
+                max_freq = max(gene_freq.values())
+                min_freq = min(gene_freq.values())
+            else:
+                max_freq, min_freq = 1, 1
+
+            # Custom color function to map frequency to a color from the 'Blues' colormap
+            cmap = plt.get_cmap(config.get("palette", "Blues"))
+            def color_func(word, font_size, position, orientation, random_state=None, **kwargs):
+                if max_freq == min_freq:
+                    norm_freq = 0.5  # Mid-range color for uniform frequencies
+                else:
+                    norm_freq = (gene_freq.get(word, 0) - min_freq) / (max_freq - min_freq)
+                
+                # Scale to use a more visible part of the colormap (avoiding pure white)
+                scaled_norm_freq = 0.2 + 0.8 * norm_freq
+                
+                color = cmap(scaled_norm_freq)
+                # WordCloud expects RGB tuples of integers (0-255)
+                return tuple(int(c * 255) for c in color[:3])
+
             wordcloud = WordCloud(
                 background_color="white",
                 width=400,
                 height=300,
-                colormap=config.get("palette", "Blues"),
+                color_func=color_func,
                 max_words=30,
                 contour_width=1,
                 contour_color='steelblue',
@@ -1050,13 +1079,15 @@ def plot_trajectories_with_wordclouds(data_with_clusters, processed_df, centroid
                 "response",
                 "signal",
                 "signaling",
+                "small",
                 "stimulus",
                 "structure",
                 "system",
                 "transduction"
             ]
-            terms = [term for term in terms if term not in low_signal_words]
             text = " ".join(terms)
+            # remove any words that appear in the list of low signal words
+            text = " ".join([term for term in text.split(" ") if term not in low_signal_words])
             if text:
                 wordcloud = WordCloud(
                     background_color="white",
@@ -1365,6 +1396,28 @@ def main(config):
                     )
                     if plot_file_obj:
                         plot_links_for_slides[f'{tissue}_{sex}_trajectories_with_wordclouds'] = plot_file_obj
+
+            print(f"Memory usage before cleanup: {psutil.Process().memory_info().rss / 1024 / 1024:.2f} MB")
+            print(f"\n--- Cleaning up memory for {tissue} {sex} ---")
+            # List all large objects created in the loop to be deleted
+            vars_to_delete = [
+                'data_filtered',
+                'all_clustering_results',
+                'processed_df', 
+                'optimal_result',
+                'data_with_clusters',
+                'enrichment_results', 
+                'merged_genes_df',
+                'processed_enrichment_results'
+            ]
+            for var_name in vars_to_delete:
+                if var_name in locals():
+                    exec(f'del {var_name}')
+            
+            # Manually trigger the garbage collector
+            gc.collect()
+            print("--- Memory cleanup complete ---")
+            print(f"Memory usage after cleanup: {psutil.Process().memory_info().rss / 1024 / 1024:.2f} MB")
 
     # --- Final Reporting ---
     print("\n--- Updating Google Slides Presentation ---")
