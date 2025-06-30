@@ -2,7 +2,7 @@ import yaml
 import argparse
 import os
 from dotenv import load_dotenv
-from src.dawgpac_analysis.temporal_clustering import atac, rna
+from src.dawgpac_analysis.temporal_clustering import atac
 
 def load_config(pipeline_name):
     """Loads default and pipeline-specific configs and merges them."""
