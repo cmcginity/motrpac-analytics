@@ -15,4 +15,5 @@ dependencies:
   - wordcloud
   - gprofiler-official
   - pyarrow
+  - psutil
 prefix: /Users/curtismcginity/anaconda3/envs/motrpac_analysis

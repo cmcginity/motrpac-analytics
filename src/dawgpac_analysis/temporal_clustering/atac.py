@@ -1399,6 +1399,7 @@ def main(config):
 
             print(f"Memory usage before cleanup: {psutil.Process().memory_info().rss / 1024 / 1024:.2f} MB")
             print(f"\n--- Cleaning up memory for {tissue} {sex} ---")
+            plt.close('all')
             # List all large objects created in the loop to be deleted
             vars_to_delete = [
                 'data_filtered',
