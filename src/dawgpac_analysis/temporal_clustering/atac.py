@@ -899,7 +899,7 @@ def main(config):
     g_helper = GoogleCloudHelper()
     
     # Create top-level output folder in Google Drive
-    drive_run_folder_id = g_helper.create_drive_folder(f"run_{RUN_DATE}", config['drive']['root_output_folder_id'])
+    drive_run_folder_id = g_helper.create_drive_folder(f"{RUN_DATE}_atac_temporal_clustering", config['drive']['root_output_folder_id'])
     print(f"Created main output folder in Google Drive with ID: {drive_run_folder_id}")
 
     plot_links_for_slides = {}

@@ -17,6 +17,7 @@ __pycache__/
 
 
 # Ignore google auth files
+secrets/
 token.json
 credentials.json
 
