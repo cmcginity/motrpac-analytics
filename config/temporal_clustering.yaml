@@ -1,6 +1,6 @@
 gcs_paths:
-  da_data: "gs://mawg-data/rat-acute-06/epigenomics/da"
-  feature_map_data: "gs://mawg-data/rat-acute-06/epigenomics/metadata"
+  da_data: "rat-acute-06/epigenomics/da"
+  feature_map_data: "rat-acute-06/epigenomics/metadata"
 
 tissue_files:
   liver:
@@ -33,3 +33,12 @@ columns:
   feature_ID: "feature_ID"
   timepoint: "timepoint"
   logFC: "logFC"
+
+# For a first run, it's best to search for optimal seeds from scratch.
+# The script will save the best seeds it finds for future use.
+use_precomputed_seeds: false
+
+# When true, the pipeline will save plots and data CSVs to the local
+# output directory specified by `local_base_output_dir`.
+export_local_output: true
+

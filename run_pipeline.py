@@ -2,7 +2,7 @@ import yaml
 import argparse
 import os
 from dotenv import load_dotenv
-from src.dawgpac_analysis.temporal_clustering import atac
+from src.dawgpac_analysis.temporal_clustering import atac, rna
 
 def load_config(pipeline_name):
     """Loads default and pipeline-specific configs and merges them."""
@@ -35,5 +35,6 @@ if __name__ == "__main__":
         print("Starting ATAC Temporal Clustering Pipeline...")
         atac.main(config) 
         print("Pipeline finished successfully.")
+        # add rna pipeline here
     else:
         print(f"Error: Unknown pipeline '{args.pipeline_config}'")
