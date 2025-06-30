@@ -4,6 +4,8 @@
 # Ignore "data/" directories at root and recursively
 /data/
 /**/data/
+/output/
+/**output/
 
 # Ignore any temp files
 .ipynb_checkpoints/

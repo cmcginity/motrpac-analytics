@@ -48,19 +48,20 @@ class GoogleCloudHelper:
     """
     A helper class to interact with Google services using a dual-authentication strategy.
     """
-    def __init__(self):
+    def __init__(self, gcs_quota_project_id=None):
         """
         Initializes Google Cloud clients with separate authentication:
         - GCS uses Application Default Credentials (from your STANFORD account via `gcloud`).
         - Drive and Slides use user-provided OAuth credentials (from your PERSONAL account).
+        - gcs_quota_project_id: The ID of a GCP project to use for GCS API quotas.
         """
         print("Initializing Google Cloud Helper with dual authentication...")
 
-        # Initialize GCS client using Org Account credentials.
-        # By passing no credentials, the library automatically finds the Application Default
-        # Credentials you set with `gcloud auth application-default login`.
-        self.storage_client = storage.Client()
-        print("  - GCS Client initialized using Application Default Credentials (Org Account).")
+        # Pass the provided project ID to the GCS client.
+        # This satisfies the client's need for a quota project, while still using
+        # the Org account's Application Default Credentials for authentication.
+        self.storage_client = storage.Client(project=gcs_quota_project_id)
+        print(f"  - GCS Client initialized using project '{gcs_quota_project_id}' for quota and Org Account for auth.")
 
         # Initialize Drive and Slides clients using Personal Account credentials.
         # This calls our dedicated function to get credentials from the OAuth flow.

@@ -3,6 +3,9 @@ drive:
 slides:
   presentation_id: "12bzFoK1o5ToIEPrfhbBbQ5IIHUogmVN3epSlh9auRh0"
 
+# Add this new key:
+personal_gcp_project_id: "motrpac-dawgpac"
+
 export_local_output: true
 local_base_output_dir: "output"
 

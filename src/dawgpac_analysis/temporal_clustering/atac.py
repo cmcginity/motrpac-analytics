@@ -9,7 +9,7 @@ import seaborn as sns
 import skfuzzy as fuzz
 from scipy.spatial.distance import cdist
 from sklearn.preprocessing import StandardScaler
-from collections import defaultdict
+from collections import defaultdict, Counter
 from gprofiler import GProfiler
 from wordcloud import WordCloud
 from matplotlib.cm import ScalarMappable
@@ -25,7 +25,12 @@ print(f"Polars version: {pl.__version__}")
 def get_output_paths(local_base_dir, artifact_type, tissue, sex, slug, ext):
     """Generates standardized local path and a clean cloud filename."""
     drive_filename = f"{RUN_DATE}_{tissue}_{sex}_{slug}.{ext}"
-    local_path = os.path.join(local_base_dir, artifact_type, RUN_DATE, drive_filename)
+    local_path = os.path.join(
+        local_base_dir,
+        artifact_type,
+        RUN_DATE,
+        drive_filename,
+    )
     return local_path, drive_filename
 
 def load_and_preprocess_data(file_buffer, config, sex):
@@ -36,7 +41,7 @@ def load_and_preprocess_data(file_buffer, config, sex):
 
     p_val_col = config["columns"]["p_value_adj"]
     sex_col = config["columns"]["sex"]
-    feature_col = config["columns"]["feature_ID"]
+    feature_col = config["columns"]["feature_id"]
     significance_threshold = config['analysis_params']['significance_threshold']
     
     try:
@@ -51,6 +56,16 @@ def load_and_preprocess_data(file_buffer, config, sex):
             .otherwise(pl.col(p_val_col).cast(pl.Float64, strict=False))
             .alias(p_val_col)
         ).drop_nulls(subset=[p_val_col])
+
+        # 2. Derive timepoint from the 'contrast' column.
+        df_pl = df_pl.with_columns(
+            pl.col("contrast")
+            .str.split("-")
+            .list.get(0)
+            .str.split("acute_")
+            .list.get(1)
+            .alias("timepoint")
+        )
 
         # 3. Filter based on significance and sex.
         df_filtered_pl = (
@@ -72,8 +87,12 @@ def load_and_preprocess_data(file_buffer, config, sex):
         # Return an empty DataFrame to allow the pipeline to continue gracefully
         return pd.DataFrame()
 
-def xie_beni_index(data: np.ndarray, centers: np.ndarray, 
-                  membership_matrix: np.ndarray, m: float) -> float:
+def xie_beni_index(
+    data: np.ndarray,
+    centers: np.ndarray,
+    membership_matrix: np.ndarray,
+    m: float,
+) -> float:
     """Calculate Xie-Beni index: ratio of within-cluster compactness to between-cluster separation"""
     n = data.shape[0]
     c = centers.shape[0]
@@ -116,7 +135,7 @@ def run_cmeans_for_k(processed_df, k, config, precomputed_seed=None):
     else:
         # Generate a diverse and comprehensive list of seeds to test
         num_random = config["analysis_params"]["clustering"].get("num_random_seeds", 10)
-        explicit = config.get("explicit_seeds", [])
+        explicit = config["analysis_params"]["clustering"].get("explicit_seeds", [])
         random_seeds = np.random.randint(0, 100000, size=num_random)
         
         # Combine explicit seeds with random seeds and ensure uniqueness
@@ -221,7 +240,12 @@ def find_optimal_clusters(data_filtered, output_dir, tissue, sex, config, g_help
     print(f"Starting clustering search for {sex}...")
     for k in cluster_range:
         seed_for_k = precomputed_seeds.get(k) if use_precomputed else None
-        best_result_for_k = run_cmeans_for_k(processed_df, k, config, precomputed_seed=seed_for_k)
+        best_result_for_k = run_cmeans_for_k(
+            processed_df,
+            k,
+            config,
+            precomputed_seed=seed_for_k,
+        )
         metrics.append({
             'n_clusters': k,
             'xie_beni_index': best_result_for_k['xb_index'],
@@ -239,7 +263,7 @@ def find_optimal_clusters(data_filtered, output_dir, tissue, sex, config, g_help
     source = "Xie-Beni Index"
     optimal_k = int(metrics_df.loc[metrics_df['xie_beni_index'].idxmin()]['n_clusters'])
 
-    explicit_override = config.get("explicit_cluster_choice", {}).get(sex, {}).get(tissue)
+    explicit_override = config["analysis_params"]["clustering"].get("explicit_cluster_choice", {}).get(sex, {}).get(tissue)
     if explicit_override:
         if explicit_override in all_results:
             optimal_k = explicit_override
@@ -292,7 +316,7 @@ def preprocess_data_for_clustering(df, config):
     """
     Transforms dataframe into format for clustering: each feature_ID becomes a row with timepoint values.
     """
-    feature_col = config["columns"]["feature_ID"]
+    feature_col = config["columns"]["feature_id"]
     log2fc_col = config["columns"]["logFC"]
     timepoint_col = config["columns"]["timepoint"]
     
@@ -340,7 +364,7 @@ def plot_all_feature_trajectories(data_filtered, config, tissue, sex, local_path
     
     # Calculate the metric for the color scale (max logFC per feature)
     metric_col = config["columns"]["logFC"]
-    feature_col = config["columns"]["feature_ID"]
+    feature_col = config["columns"]["feature_id"]
     time_col = config["columns"]["timepoint"]
     
     color_scale_metric = (
@@ -385,15 +409,29 @@ def plot_all_feature_trajectories(data_filtered, config, tissue, sex, local_path
 
     if local_path:
         os.makedirs(os.path.dirname(local_path), exist_ok=True)
-        plt.savefig(local_path, dpi=config['plotting']['dpi'], bbox_inches='tight')
+        plt.savefig(
+            local_path,
+            dpi=config['plotting']['dpi'],
+            bbox_inches='tight',
+        )
         print(f"  - Saved plot locally to {local_path}")
 
     plot_file_obj = None
     if g_helper and drive_folder_id and drive_filename:
         buffer = io.BytesIO()
-        plt.savefig(buffer, format='png', dpi=config['plotting']['dpi'], bbox_inches='tight')
+        plt.savefig(
+            buffer,
+            format='png',
+            dpi=config['plotting']['dpi'],
+            bbox_inches='tight',
+        )
         buffer.seek(0)
-        plot_file_obj = g_helper.upload_buffer_to_drive(buffer, drive_folder_id, drive_filename, 'image/png')
+        plot_file_obj = g_helper.upload_buffer_to_drive(
+            buffer,
+            drive_folder_id,
+            drive_filename,
+            'image/png',
+        )
     
     plt.close(fig)
     return plot_file_obj
@@ -415,14 +453,20 @@ def plot_clusters_with_centroids(data_with_clusters, processed_df, centroids, op
         x=config["columns"]["timepoint"],
         y=config["columns"]["logFC"],
         hue="cluster",
-        units=config["columns"]["feature_ID"],
+        units=config["columns"]["feature_id"],
         estimator=None,
         alpha=0.15,
         palette=palette
     )
     
     for i in range(optimal_k):
-        plt.plot(processed_df.columns, centroids[i], color=palette[i], linewidth=4, label=f"Cluster {i+1} Centroid")
+        plt.plot(
+            processed_df.columns,
+            centroids[i],
+            color=palette[i],
+            linewidth=4,
+            label=f"Cluster {i+1} Centroid",
+        )
 
     plt.title(f"Feature Trajectories by Cluster for {sex.capitalize()} {tissue.capitalize()}")
     plt.xlabel("Timepoint")
@@ -440,15 +484,29 @@ def plot_clusters_with_centroids(data_with_clusters, processed_df, centroids, op
 
     if local_path:
         os.makedirs(os.path.dirname(local_path), exist_ok=True)
-        plt.savefig(local_path, dpi=config['plotting']['dpi'], bbox_inches='tight')
+        plt.savefig(
+            local_path,
+            dpi=config['plotting']['dpi'],
+            bbox_inches='tight',
+        )
         print(f"  - Saved plot locally to {local_path}")
 
     plot_file_obj = None
     if g_helper and drive_folder_id and drive_filename:
         buffer = io.BytesIO()
-        plt.savefig(buffer, format='png', dpi=config['plotting']['dpi'], bbox_inches='tight')
+        plt.savefig(
+            buffer,
+            format='png',
+            dpi=config['plotting']['dpi'],
+            bbox_inches='tight',
+        )
         buffer.seek(0)
-        plot_file_obj = g_helper.upload_buffer_to_drive(buffer, drive_folder_id, drive_filename, 'image/png')
+        plot_file_obj = g_helper.upload_buffer_to_drive(
+            buffer,
+            drive_folder_id,
+            drive_filename,
+            'image/png',
+        )
     
     plt.close()
     return plot_file_obj
@@ -461,7 +519,13 @@ def plot_only_centroids(centroids, timepoints, optimal_k, config, tissue, sex, l
     palette = sns.color_palette(config.get("palette", "viridis"), optimal_k)
 
     for i in range(optimal_k):
-        plt.plot(timepoints, centroids[i], color=palette[i], linewidth=3, label=f'Cluster {i+1}')
+        plt.plot(
+            timepoints,
+            centroids[i],
+            color=palette[i],
+            linewidth=3,
+            label=f'Cluster {i+1}',
+        )
     
     plt.title(f'Cluster Centroids for {sex.capitalize()} {tissue.capitalize()} (n={optimal_k})')
     plt.xlabel('Timepoint')
@@ -473,15 +537,29 @@ def plot_only_centroids(centroids, timepoints, optimal_k, config, tissue, sex, l
 
     if local_path:
         os.makedirs(os.path.dirname(local_path), exist_ok=True)
-        plt.savefig(local_path, dpi=config['plotting']['dpi'], bbox_inches='tight')
+        plt.savefig(
+            local_path,
+            dpi=config['plotting']['dpi'],
+            bbox_inches='tight',
+        )
         print(f"  - Saved plot locally to {local_path}")
 
     plot_file_obj = None
     if g_helper and drive_folder_id and drive_filename:
         buffer = io.BytesIO()
-        plt.savefig(buffer, format='png', dpi=config['plotting']['dpi'], bbox_inches='tight')
+        plt.savefig(
+            buffer,
+            format='png',
+            dpi=config['plotting']['dpi'],
+            bbox_inches='tight',
+        )
         buffer.seek(0)
-        plot_file_obj = g_helper.upload_buffer_to_drive(buffer, drive_folder_id, drive_filename, 'image/png')
+        plot_file_obj = g_helper.upload_buffer_to_drive(
+            buffer,
+            drive_folder_id,
+            drive_filename,
+            'image/png',
+        )
     
     plt.close()
     return plot_file_obj
@@ -500,20 +578,26 @@ def plot_individual_clusters(data_with_clusters, processed_df, centroids, optima
     for i in range(optimal_k):
         plt.figure(figsize=(10, 6))
         cluster_data = plot_data[plot_data["cluster"] == i]
-        n_features = cluster_data[config["columns"]["feature_ID"]].nunique()
+        n_features = cluster_data[config["columns"]["feature_id"]].nunique()
 
         sns.lineplot(
             data=cluster_data,
             x=config["columns"]["timepoint"],
             y=config["columns"]["logFC"],
-            units=config["columns"]["feature_ID"],
+            units=config["columns"]["feature_id"],
             estimator=None,
             color=palette[i],
             alpha=0.15,
             linewidth=0.8
         )
         
-        plt.plot(processed_df.columns, centroids[i], color="black", linewidth=3, label=f'Cluster {i+1} Centroid')
+        plt.plot(
+            processed_df.columns,
+            centroids[i],
+            color="black",
+            linewidth=3,
+            label=f'Cluster {i+1} Centroid',
+        )
         
         plt.ylim(y_min, y_max)
         plt.title(f'{tissue.capitalize()} {sex.capitalize()} - Cluster {i+1} ({n_features} features)')
@@ -526,15 +610,29 @@ def plot_individual_clusters(data_with_clusters, processed_df, centroids, optima
         if local_path_prefix:
             local_path = f"{local_path_prefix}{i+1}.png"
             os.makedirs(os.path.dirname(local_path), exist_ok=True)
-            plt.savefig(local_path, dpi=config['plotting']['dpi'], bbox_inches='tight')
+            plt.savefig(
+                local_path,
+                dpi=config['plotting']['dpi'],
+                bbox_inches='tight',
+            )
             print(f"  - Saved plot locally to {local_path}")
 
         if g_helper and drive_folder_id and drive_filename_prefix:
             drive_filename = f"{drive_filename_prefix}{i+1}.png"
             buffer = io.BytesIO()
-            plt.savefig(buffer, format='png', dpi=config['plotting']['dpi'], bbox_inches='tight')
+            plt.savefig(
+                buffer,
+                format='png',
+                dpi=config['plotting']['dpi'],
+                bbox_inches='tight',
+            )
             buffer.seek(0)
-            g_helper.upload_buffer_to_drive(buffer, drive_folder_id, drive_filename, 'image/png')
+            g_helper.upload_buffer_to_drive(
+                buffer,
+                drive_folder_id,
+                drive_filename,
+                'image/png',
+            )
         
         plt.close()
 
@@ -546,7 +644,13 @@ def plot_cluster_centroids_array(data_with_clusters, processed_df, centroids, op
 
     n_cols = 3
     n_rows = (optimal_k + n_cols - 1) // n_cols
-    fig, axes = plt.subplots(n_rows, n_cols, figsize=(5 * n_cols, 4 * n_rows), sharex=True, sharey=True)
+    fig, axes = plt.subplots(
+        n_rows,
+        n_cols,
+        figsize=(5 * n_cols, 4 * n_rows),
+        sharex=True,
+        sharey=True,
+    )
     axes = axes.flatten()
     
     plot_data = data_with_clusters.copy()
@@ -557,13 +661,13 @@ def plot_cluster_centroids_array(data_with_clusters, processed_df, centroids, op
     for i in range(optimal_k):
         ax = axes[i]
         cluster_data = plot_data[plot_data["cluster"] == i]
-        n_features = cluster_data[config["columns"]["feature_ID"]].nunique()
+        n_features = cluster_data[config["columns"]["feature_id"]].nunique()
 
         sns.lineplot(
             data=cluster_data,
             x=config["columns"]["timepoint"],
             y=config["columns"]["logFC"],
-            units=config["columns"]["feature_ID"],
+            units=config["columns"]["feature_id"],
             estimator=None,
             color=palette[i],
             alpha=0.1,
@@ -589,15 +693,29 @@ def plot_cluster_centroids_array(data_with_clusters, processed_df, centroids, op
 
     if local_path:
         os.makedirs(os.path.dirname(local_path), exist_ok=True)
-        plt.savefig(local_path, dpi=config['plotting']['dpi'], bbox_inches='tight')
+        plt.savefig(
+            local_path,
+            dpi=config['plotting']['dpi'],
+            bbox_inches='tight',
+        )
         print(f"  - Saved plot locally to {local_path}")
 
     plot_file_obj = None
     if g_helper and drive_folder_id and drive_filename:
         buffer = io.BytesIO()
-        plt.savefig(buffer, format='png', dpi=config['plotting']['dpi'], bbox_inches='tight')
+        plt.savefig(
+            buffer,
+            format='png',
+            dpi=config['plotting']['dpi'],
+            bbox_inches='tight',
+        )
         buffer.seek(0)
-        plot_file_obj = g_helper.upload_buffer_to_drive(buffer, drive_folder_id, drive_filename, 'image/png')
+        plot_file_obj = g_helper.upload_buffer_to_drive(
+            buffer,
+            drive_folder_id,
+            drive_filename,
+            'image/png',
+        )
     
     plt.close()
     return plot_file_obj
@@ -608,7 +726,7 @@ def run_pathway_enrichment(feature_ids, labels, optimal_k, gene_lookup_buffer, c
     """
     # Prepare clustered features, ensuring the index is reset to be a column for merging.
     clustered_features_df = pd.DataFrame({
-        config["columns"]["feature_ID"]: feature_ids,
+        config["columns"]["feature_id"]: feature_ids,
         'cluster_assignment': labels
     })
     unique_clustered_features_df = clustered_features_df.drop_duplicates().reset_index(drop=True)
@@ -619,7 +737,12 @@ def run_pathway_enrichment(feature_ids, labels, optimal_k, gene_lookup_buffer, c
     try:
         print(f"\nLoading gene lookup data from buffer.")
         gene_lookup_buffer.seek(0)
-        gene_lookup_df = pd.read_csv(gene_lookup_buffer, sep='\t', usecols=lambda col: col in gene_cols_to_use, engine='python')
+        gene_lookup_df = pd.read_csv(
+            gene_lookup_buffer,
+            sep='\t',
+            usecols=lambda col: col in gene_cols_to_use,
+            engine='python',
+        )
         print("\nGene lookup data loaded successfully.")
     except FileNotFoundError:
         print(f"Error: Gene lookup file not found.")
@@ -633,7 +756,7 @@ def run_pathway_enrichment(feature_ids, labels, optimal_k, gene_lookup_buffer, c
     merged_df = pd.merge(
         unique_clustered_features_df,
         gene_lookup_df,
-        left_on=config["columns"]["feature_ID"],
+        left_on=config["columns"]["feature_id"],
         right_on='feature_id',
         how='left'
     )
@@ -643,7 +766,10 @@ def run_pathway_enrichment(feature_ids, labels, optimal_k, gene_lookup_buffer, c
 
     # Save merged df with gene info
     if local_artifact_dir and export_local_csv:
-        csv_local_path = os.path.join(local_artifact_dir, f"{tissue}_{sex}_all_clusters_genes.csv")
+        csv_local_path = os.path.join(
+            local_artifact_dir,
+            f"{tissue}_{sex}_all_clusters_genes.csv"
+        )
         merged_df.to_csv(csv_local_path, index=False)
         print(f"\nSaved cluster genes to {csv_local_path}")
         
@@ -652,7 +778,12 @@ def run_pathway_enrichment(feature_ids, labels, optimal_k, gene_lookup_buffer, c
         buffer = io.StringIO()
         merged_df.to_csv(buffer, index=False)
         buffer.seek(0)
-        g_helper.upload_buffer_to_drive(io.BytesIO(buffer.read().encode('utf-8')), drive_artifact_folder_id, drive_filename, 'text/csv')
+        g_helper.upload_buffer_to_drive(
+            io.BytesIO(buffer.read().encode('utf-8')),
+            drive_artifact_folder_id,
+            drive_filename,
+            'text/csv'
+        )
 
     # Perform pathway enrichment for each cluster
     gp = GProfiler(return_dataframe=True, user_agent='motrpac_temporal_analysis')
@@ -695,7 +826,10 @@ def run_pathway_enrichment(feature_ids, labels, optimal_k, gene_lookup_buffer, c
     if all_enrichment_dfs:
         concatenated_enrichment = pd.concat(all_enrichment_dfs, ignore_index=True)
         if local_artifact_dir and export_local_csv:
-            csv_local_path = os.path.join(local_artifact_dir, f"{tissue}_{sex}_all_clusters_enrichment.csv")
+            csv_local_path = os.path.join(
+                local_artifact_dir,
+                f"{tissue}_{sex}_all_clusters_enrichment.csv"
+            )
             concatenated_enrichment.to_csv(csv_local_path, index=False)
             print(f"\nSaved combined enrichment results to {csv_local_path}")
 
@@ -704,18 +838,31 @@ def run_pathway_enrichment(feature_ids, labels, optimal_k, gene_lookup_buffer, c
             buffer = io.StringIO()
             concatenated_enrichment.to_csv(buffer, index=False)
             buffer.seek(0)
-            g_helper.upload_buffer_to_drive(io.BytesIO(buffer.read().encode('utf-8')), drive_artifact_folder_id, drive_filename, 'text/csv')
+            g_helper.upload_buffer_to_drive(
+                io.BytesIO(buffer.read().encode('utf-8')),
+                drive_artifact_folder_id,
+                drive_filename,
+                'text/csv'
+            )
 
     enrichment_results_bytes = pickle.dumps(enrichment_results_by_cluster)
     if local_artifact_dir:
-        pickle_local_path = os.path.join(local_artifact_dir, f"{tissue}_{sex}_all_clusters_enrichment.pkl")
+        pickle_local_path = os.path.join(
+            local_artifact_dir,
+            f"{tissue}_{sex}_all_clusters_enrichment.pkl",
+        )
         with open(pickle_local_path, "wb") as f:
             f.write(enrichment_results_bytes)
         print(f"Saved enrichment dictionary to {pickle_local_path}")
 
     if g_helper and drive_artifact_folder_id:
         drive_filename = f"{RUN_DATE}_{tissue}_{sex}_all_clusters_enrichment.pkl"
-        g_helper.upload_buffer_to_drive(io.BytesIO(enrichment_results_bytes), drive_artifact_folder_id, drive_filename, 'application/octet-stream')
+        g_helper.upload_buffer_to_drive(
+            io.BytesIO(enrichment_results_bytes),
+            drive_artifact_folder_id,
+            drive_filename,
+            'application/octet-stream',
+        )
         
     return enrichment_results_by_cluster, merged_df
 
@@ -787,7 +934,12 @@ def postprocess_enrichment_results(
 
     if g_helper and drive_artifact_folder_id:
         drive_filename = f"{RUN_DATE}_{tissue}_{sex}_all_clusters_processed_enrichment.pkl"
-        g_helper.upload_buffer_to_drive(io.BytesIO(processed_results_bytes), drive_artifact_folder_id, drive_filename, 'application/octet-stream')
+        g_helper.upload_buffer_to_drive(
+            io.BytesIO(processed_results_bytes),
+            drive_artifact_folder_id,
+            drive_filename,
+            'application/octet-stream'
+        )
 
     return processed_results
 
@@ -798,7 +950,12 @@ def plot_trajectories_with_wordclouds(data_with_clusters, processed_df, centroid
     palette = sns.color_palette(config.get("palette", "viridis"), optimal_k)
     
     n_rows = optimal_k
-    fig, axes = plt.subplots(n_rows, 3, figsize=(18, 4.5 * n_rows), gridspec_kw={'width_ratios': [2, 1, 1]})
+    fig, axes = plt.subplots(
+        n_rows,
+        3,
+        figsize=(18, 4.5 * n_rows),
+        gridspec_kw={'width_ratios': [2, 1, 1]}
+    )
 
     plot_data = data_with_clusters.copy()
     plot_data.replace([np.inf, -np.inf], np.nan, inplace=True)
@@ -811,13 +968,13 @@ def plot_trajectories_with_wordclouds(data_with_clusters, processed_df, centroid
         
         # Trajectory plot
         cluster_data = plot_data[plot_data["cluster"] == i]
-        n_features = cluster_data[config["columns"]["feature_ID"]].nunique()
+        n_features = cluster_data[config["columns"]["feature_id"]].nunique()
 
         sns.lineplot(
             data=cluster_data,
             x=config["columns"]["timepoint"],
             y=config["columns"]["logFC"],
-            units=config["columns"]["feature_ID"],
+            units=config["columns"]["feature_id"],
             estimator=None,
             color=palette[i],
             alpha=0.1,
@@ -839,26 +996,66 @@ def plot_trajectories_with_wordclouds(data_with_clusters, processed_df, centroid
         # Gene Word cloud
         ax_gene_wc.axis("off")
         genes_for_cluster = merged_df[merged_df['cluster_assignment'] == i]
-        gene_names = genes_for_cluster['gene_name'].replace('NA', np.nan).dropna().tolist()
+        gene_names = genes_for_cluster['gene_name'].replace('NA', np.nan).dropna().str.strip().tolist()
         if gene_names:
-            text = " ".join(gene_names)
+            gene_freq = Counter(gene_names)
             wordcloud = WordCloud(
                 background_color="white",
                 width=400,
                 height=300,
-                colormap=config.get("palette", "viridis"),
+                colormap=config.get("palette", "Blues"),
                 max_words=30,
                 contour_width=1,
                 contour_color='steelblue',
                 max_font_size=100,
-            ).generate(text)
+            ).generate_from_frequencies(gene_freq)
             ax_gene_wc.imshow(wordcloud, interpolation='bilinear')
-            ax_gene_wc.set_title(f"Top Genes ({len(gene_names)})")
+            ax_gene_wc.set_title(f"Top Genes ({len(gene_freq)})")
             
         # Pathway Word cloud
         ax_pathway_wc.axis("off")
         if i in enrichment_results and not enrichment_results[i].empty:
             terms = enrichment_results[i]['name'].dropna().tolist()
+            # remove low signal words from the list
+            low_signal_words = [
+                "acid",
+                "anatomical",
+                "biological",
+                "biosynthetic",
+                "catabolic",
+                "cell",
+                "cellular",
+                "communication",
+                "compound",
+                "development",
+                "developmental",
+                "differentiation",
+                "expression",
+                "localization",
+                "macromolecule",
+                "metabolic",
+                "metabolism",
+                "molecule",
+                "negative",
+                "organismal",
+                "pathway",
+                "pathways",
+                "positive",
+                "process",
+                "processes",
+                "quality",
+                "regulating",
+                "regulation",
+                "regulatory",
+                "response",
+                "signal",
+                "signaling",
+                "stimulus",
+                "structure",
+                "system",
+                "transduction"
+            ]
+            terms = [term for term in terms if term not in low_signal_words]
             text = " ".join(terms)
             if text:
                 wordcloud = WordCloud(
@@ -880,26 +1077,52 @@ def plot_trajectories_with_wordclouds(data_with_clusters, processed_df, centroid
     
     if local_path:
         os.makedirs(os.path.dirname(local_path), exist_ok=True)
-        plt.savefig(local_path, dpi=config['plotting']['dpi'], bbox_inches='tight')
+        plt.savefig(
+            local_path,
+            dpi=config['plotting']['dpi'],
+            bbox_inches='tight'
+        )
         print(f"  - Saved plot locally to {local_path}")
 
     plot_file_obj = None
     if g_helper and drive_folder_id and drive_filename:
         buffer = io.BytesIO()
-        plt.savefig(buffer, format='png', dpi=config['plotting']['dpi'], bbox_inches='tight')
+        plt.savefig(
+            buffer,
+            format='png',
+            dpi=config['plotting']['dpi'],
+            bbox_inches='tight'
+        )
         buffer.seek(0)
-        plot_file_obj = g_helper.upload_buffer_to_drive(buffer, drive_folder_id, drive_filename, 'image/png')
+        plot_file_obj = g_helper.upload_buffer_to_drive(
+            buffer,
+            drive_folder_id,
+            drive_filename,
+            'image/png'
+        )
     
     plt.close()
     return plot_file_obj
 
 def main(config):
-    """Main function to run the temporal clustering pipeline."""
+    """
+    Main function to run the ATAC-seq temporal clustering pipeline.
+    """
+    print("Starting ATAC Temporal Clustering Pipeline...")
     
-    g_helper = GoogleCloudHelper()
-    
+    # Read the new project ID from the config dictionary
+    gcs_project_id = config.get('personal_gcp_project_id')
+    if not gcs_project_id:
+        raise ValueError("The 'personal_gcp_project_id' must be set in your configuration (e.g., defaults.yaml)")
+
+    # Pass the project ID when initializing the helper class
+    g_helper = GoogleCloudHelper(gcs_quota_project_id=gcs_project_id)
+
     # Create top-level output folder in Google Drive
-    drive_run_folder_id = g_helper.create_drive_folder(f"{RUN_DATE}_atac_temporal_clustering", config['drive']['root_output_folder_id'])
+    drive_run_folder_id = g_helper.create_drive_folder(
+        f"{RUN_DATE}_atac_temporal_clustering",
+        config['drive']['root_output_folder_id']
+    )
     print(f"Created main output folder in Google Drive with ID: {drive_run_folder_id}")
 
     plot_links_for_slides = {}
@@ -930,7 +1153,9 @@ def main(config):
             print(f"\n--- Processing sex: {sex.upper()} ---")
             
             data_filtered = load_and_preprocess_data(
-                da_buffer, config, sex
+                da_buffer,
+                config,
+                sex
             )
             
             if data_filtered.empty:
@@ -947,8 +1172,13 @@ def main(config):
                 print(f"Output will be saved to: {output_dir}")
             
             all_clustering_results, optimal_k, processed_df = find_optimal_clusters(
-                data_filtered, output_dir, tissue, sex, config,
-                g_helper=g_helper, drive_artifact_folder_id=drive_artifact_folder_id
+                data_filtered,
+                output_dir,
+                tissue,
+                sex,
+                config,
+                g_helper=g_helper,
+                drive_artifact_folder_id=drive_artifact_folder_id,
             )
 
             optimal_result = all_clustering_results[optimal_k]
@@ -956,16 +1186,24 @@ def main(config):
             centroids = optimal_result["centroids"]
 
             feature_to_cluster_map = pd.Series(labels, index=processed_df.index, name='cluster')
-            data_with_clusters = data_filtered.merge(feature_to_cluster_map, left_on=config["columns"]["feature_ID"], right_index=True)
+            data_with_clusters = data_filtered.merge(feature_to_cluster_map, left_on=config["columns"]["feature_id"], right_index=True)
             
             # --- Plotting calls ---
             
             # Plot 1: All trajectories
             local_plot_path, drive_plot_filename = get_output_paths(
-                local_base_dir, 'figures', tissue, sex, 'all_trajectories', 'png'
+                local_base_dir,
+                'figures',
+                tissue,
+                sex,
+                'all_trajectories',
+                'png'
             )
             plot_file_obj = plot_all_feature_trajectories(
-                data_filtered, config, tissue, sex,
+                data_filtered,
+                config,
+                tissue,
+                sex,
                 local_path=local_plot_path if export_local_figures_and_csv else None,
                 g_helper=g_helper,
                 drive_folder_id=drive_fig_folder_id,
@@ -976,11 +1214,21 @@ def main(config):
 
             # Plot 2: Clusters with Centroids
             local_plot_path, drive_plot_filename = get_output_paths(
-                local_base_dir, 'figures', tissue, sex, 'clusters_with_centroids', 'png'
+                local_base_dir,
+                'figures',
+                tissue,
+                sex,
+                'clusters_with_centroids',
+                'png'
             )
             plot_file_obj = plot_clusters_with_centroids(
-                data_with_clusters, processed_df, centroids, optimal_k, config,
-                tissue, sex,
+                data_with_clusters,
+                processed_df,
+                centroids,
+                optimal_k,
+                config,
+                tissue,
+                sex,
                 local_path=local_plot_path if export_local_figures_and_csv else None,
                 g_helper=g_helper,
                 drive_folder_id=drive_fig_folder_id,
@@ -991,11 +1239,20 @@ def main(config):
 
             # Plot 3: Centroids Only
             local_plot_path, drive_plot_filename = get_output_paths(
-                local_base_dir, 'figures', tissue, sex, 'centroids_only', 'png'
+                local_base_dir,
+                'figures',
+                tissue,
+                sex,
+                'centroids_only',
+                'png',
             )
             plot_file_obj = plot_only_centroids(
-                centroids, processed_df.columns, optimal_k, config,
-                tissue, sex,
+                centroids,
+                processed_df.columns,
+                optimal_k,
+                config,
+                tissue,
+                sex,
                 local_path=local_plot_path if export_local_figures_and_csv else None,
                 g_helper=g_helper,
                 drive_folder_id=drive_fig_folder_id,
@@ -1006,12 +1263,23 @@ def main(config):
 
             # Plot 4: Individual Clusters
             local_path_prefix_str, drive_filename_prefix_str = get_output_paths(
-                local_base_dir, 'figures', tissue, sex, 'cluster_', ''
+                local_base_dir,
+                'figures',
+                tissue,
+                sex,
+                'cluster_',
+                ''
             )
+            local_path_prefix_str = local_path_prefix_str.strip('.')
             drive_filename_prefix_str = drive_filename_prefix_str.strip('.')
             plot_individual_clusters(
-                data_with_clusters, processed_df, centroids, optimal_k, config,
-                tissue, sex,
+                data_with_clusters,
+                processed_df,
+                centroids,
+                optimal_k,
+                config,
+                tissue,
+                sex,
                 local_path_prefix=local_path_prefix_str if export_local_figures_and_csv else None,
                 g_helper=g_helper,
                 drive_folder_id=drive_fig_folder_id,
@@ -1020,11 +1288,21 @@ def main(config):
 
             # Plot 5: Cluster Array
             local_plot_path, drive_plot_filename = get_output_paths(
-                local_base_dir, 'figures', tissue, sex, 'cluster_array', 'png'
+                local_base_dir,
+                'figures',
+                tissue,
+                sex,
+                'cluster_array',
+                'png'
             )
             plot_file_obj = plot_cluster_centroids_array(
-                data_with_clusters, processed_df, centroids, optimal_k, config,
-                tissue, sex,
+                data_with_clusters,
+                processed_df,
+                centroids,
+                optimal_k,
+                config,
+                tissue,
+                sex,
                 local_path=local_plot_path if export_local_figures_and_csv else None,
                 g_helper=g_helper,
                 drive_folder_id=drive_fig_folder_id,
@@ -1035,8 +1313,13 @@ def main(config):
             
             # --- Enrichment and final plot ---
             enrichment_results, merged_genes_df = run_pathway_enrichment(
-                processed_df.index, labels, optimal_k, feature_map_buffer, config,
-                tissue, sex,
+                processed_df.index,
+                labels,
+                optimal_k,
+                feature_map_buffer,
+                config,
+                tissue,
+                sex,
                 local_artifact_dir=output_dir, 
                 g_helper=g_helper, 
                 drive_artifact_folder_id=drive_artifact_folder_id,
@@ -1058,7 +1341,12 @@ def main(config):
 
                 if processed_enrichment_results:
                     local_plot_path, drive_plot_filename = get_output_paths(
-                        local_base_dir, 'figures', tissue, sex, 'trajectories_with_wordclouds', 'png'
+                        local_base_dir,
+                        'figures',
+                        tissue,
+                        sex,
+                        'trajectories_with_wordclouds',
+                        'png'
                     )
                     plot_file_obj = plot_trajectories_with_wordclouds(
                         data_with_clusters,
@@ -1092,6 +1380,12 @@ def main(config):
                 # A common format is `https://drive.google.com/uc?id=<FILE_ID>`
                 file_id = file_obj.get('id')
                 clean_url = f"https://drive.google.com/uc?id={file_id}"
+
+                # --- BEGIN DEBUG LOGGING ---
+                print(f"    - Presentation ID: {config['slides']['presentation_id']}")
+                print(f"    - Placeholder Text: {placeholder}")
+                print(f"    - Image URL: {clean_url}")
+                # --- END DEBUG LOGGING ---
 
                 g_helper.replace_image_in_slides(
                     config['slides']['presentation_id'],
