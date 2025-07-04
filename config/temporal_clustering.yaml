@@ -3,24 +3,24 @@ gcs_paths:
   feature_map_data: "rat-acute-06/epigenomics/metadata"
 
 tissue_files:
-  liver:
-    da_file: "rat-acute-06_t68-liver_epigen-atac-seq_da_timewise-deseq2-phase-frip-t2f-exercise_v1.0.txt"
-    feature_map_file: "rat-acute-06_t68-liver_epigen-atac-seq_metadata_features_v1.0.txt"
-  kidney:
-    da_file: "rat-acute-06_t59-kidney_epigen-atac-seq_da_timewise-deseq2-phase-frip-t2f-exercise_v1.0.txt"
-    feature_map_file: "rat-acute-06_t59-kidney_epigen-atac-seq_metadata_features_v1.0.txt"
-  lung:
-    da_file: "rat-acute-06_t66-lung_epigen-atac-seq_da_timewise-deseq2-phase-frip-t2f-exercise_v1.0.txt"
-    feature_map_file: "rat-acute-06_t66-lung_epigen-atac-seq_metadata_features_v1.0.txt"
-  gastrocnemius:
-    da_file: "rat-acute-06_t55-gastrocnemius_epigen-atac-seq_da_timewise-deseq2-phase-frip-t2f-exercise_v1.0.txt"
-    feature_map_file: "rat-acute-06_t55-gastrocnemius_epigen-atac-seq_metadata_features_v1.0.txt"
-  heart:
-    da_file: "rat-acute-06_t58-heart_epigen-atac-seq_da_timewise-deseq2-phase-frip-t2f-exercise_v1.0.txt"
-    feature_map_file: "rat-acute-06_t58-heart_epigen-atac-seq_metadata_features_v1.0.txt"
-  brown-adipose:
-    da_file: "rat-acute-06_t69-brown-adipose_epigen-atac-seq_da_timewise-deseq2-phase-frip-t2f-exercise_v1.0.txt"
-    feature_map_file: "rat-acute-06_t69-brown-adipose_epigen-atac-seq_metadata_features_v1.0.txt"
+  # liver:
+  #   da_file: "rat-acute-06_t68-liver_epigen-atac-seq_da_timewise-deseq2-phase-frip-t2f-exercise_v1.0.txt"
+  #   feature_map_file: "rat-acute-06_t68-liver_epigen-atac-seq_metadata_features_v1.0.txt"
+  # kidney:
+  #   da_file: "rat-acute-06_t59-kidney_epigen-atac-seq_da_timewise-deseq2-phase-frip-t2f-exercise_v1.0.txt"
+  #   feature_map_file: "rat-acute-06_t59-kidney_epigen-atac-seq_metadata_features_v1.0.txt"
+  # lung:
+  #   da_file: "rat-acute-06_t66-lung_epigen-atac-seq_da_timewise-deseq2-phase-frip-t2f-exercise_v1.0.txt"
+  #   feature_map_file: "rat-acute-06_t66-lung_epigen-atac-seq_metadata_features_v1.0.txt"
+  # gastrocnemius:
+  #   da_file: "rat-acute-06_t55-gastrocnemius_epigen-atac-seq_da_timewise-deseq2-phase-frip-t2f-exercise_v1.0.txt"
+  #   feature_map_file: "rat-acute-06_t55-gastrocnemius_epigen-atac-seq_metadata_features_v1.0.txt"
+  # heart:
+  #   da_file: "rat-acute-06_t58-heart_epigen-atac-seq_da_timewise-deseq2-phase-frip-t2f-exercise_v1.0.txt"
+  #   feature_map_file: "rat-acute-06_t58-heart_epigen-atac-seq_metadata_features_v1.0.txt"
+  # brown-adipose:
+  #   da_file: "rat-acute-06_t69-brown-adipose_epigen-atac-seq_da_timewise-deseq2-phase-frip-t2f-exercise_v1.0.txt"
+  #   feature_map_file: "rat-acute-06_t69-brown-adipose_epigen-atac-seq_metadata_features_v1.0.txt"
   white-adipose:
     da_file: "rat-acute-06_t70-white-adipose_epigen-atac-seq_da_timewise-deseq2-phase-frip-t2f-exercise_v1.0.txt"
     feature_map_file: "rat-acute-06_t70-white-adipose_epigen-atac-seq_metadata_features_v1.0.txt"
@@ -33,7 +33,7 @@ analysis_params:
     k_end: 15
     fuzziness: 1.5
     use_precomputed_seeds: false
-    num_random_seeds: 5
+    num_random_seeds: 1
     explicit_seeds: [19805, 15184, 98839, 23642, 57386, 6259, 55376, 9620, 88540, 57914, 55293, 96857, 7553, 82196, 20470, 96857, 72936, 72936, 26744, 99338, 60150, 55293, 7553, 90714, 60218, 59272]
     explicit_cluster_choice:
       male:

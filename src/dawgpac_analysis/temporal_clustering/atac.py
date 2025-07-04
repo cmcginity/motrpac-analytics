@@ -35,11 +35,12 @@ def get_output_paths(local_base_dir, artifact_type, tissue, sex, slug, ext):
     )
     return local_path, drive_filename
 
-def load_and_preprocess_data(file_buffer, config, sex):
+def load_and_preprocess_data(file_buffer, config):
     """
     Loads, parses, and preprocesses the input data from a buffer using Polars.
+    Does NOT perform significance filtering.
     """
-    print(f"Loading and preprocessing data for {sex} from buffer.")
+    print("Loading and parsing data from buffer.")
 
     p_val_col = config["columns"]["p_value_adj"]
     sex_col = config["columns"]["sex"]
@@ -68,30 +69,14 @@ def load_and_preprocess_data(file_buffer, config, sex):
             .list.get(1)
             .alias("timepoint")
         )
-
-        # 3. Filter based on significance and sex.
-        df_filtered_pl = (
-            df_pl.lazy()
-            .filter(pl.col(sex_col) == sex) # Filter by sex.
-            .filter(pl.col(p_val_col).min().over(feature_col) < significance_threshold) # Keep all timepoints for features that are significant at any point
-            .collect()
-        )
-
-        # clear memory of df_pl
-        del df_pl
-        gc.collect()
         
-        # Convert to pandas at the end for compatibility with the rest of the script.
-        df_sex = df_filtered_pl.to_pandas()
-        
-        print(f"{df_sex.head(20)}")
-        print(f"  - Found {df_sex[feature_col].nunique()} significant features for {sex}.")
-        return df_sex
+        print(f"  - Parsed initial dataframe with shape: {df_pl.shape}")
+        return df_pl
 
     except Exception as e:
         print(f"An error occurred during data loading with Polars: {e}")
         # Return an empty DataFrame to allow the pipeline to continue gracefully
-        return pd.DataFrame()
+        return pl.DataFrame()
 
 def xie_beni_index(
     data: np.ndarray,
@@ -1180,18 +1165,49 @@ def main(config):
             print(f"Error downloading data from GCS: {e}")
             continue
 
-        for sex in ["male", "female"]:
+        # Load and preprocess data ONCE per tissue. No significance filtering yet.
+        full_df_pl = load_and_preprocess_data(da_buffer, config)
+        
+        # Clean up buffer immediately
+        del da_buffer
+        gc.collect()
+
+        if full_df_pl.is_empty():
+            print(f"No data loaded for tissue {tissue}. Skipping.")
+            continue
+        
+        # Define columns and threshold for use in the loop
+        sex_col = config["columns"]["sex"]
+        p_val_col = config["columns"]["p_value_adj"]
+        feature_col = config["columns"]["feature_id"]
+        significance_threshold = config['analysis_params']['significance_threshold']
+        
+        datasets_to_process = [
+            (full_df_pl.lazy().filter(pl.col(sex_col) == "male"), "male"),
+            (full_df_pl.lazy().filter(pl.col(sex_col) == "female"), "female")
+        ]
+
+        for sex_lazy_df, sex in datasets_to_process:
             print(f"\n--- Processing sex: {sex.upper()} ---")
             
-            data_filtered = load_and_preprocess_data(
-                da_buffer,
-                config,
-                sex
+            # Apply the significance filter to the sex-specific lazy frame
+            sex_specific_filtered_lazy_df = sex_lazy_df.filter(
+                pl.col(p_val_col).min().over(feature_col) < significance_threshold
             )
-            
-            if data_filtered.empty:
-                print(f"No significant features for {sex}. Skipping.")
+
+            # Execute the lazy query and get a concrete Polars DataFrame
+            sex_specific_df_pl = sex_specific_filtered_lazy_df.collect()
+
+            if sex_specific_df_pl.is_empty():
+                print(f"No significant features for {sex} in {tissue}. Skipping.")
                 continue
+            
+            # Convert to pandas for the rest of the pipeline
+            data_filtered = sex_specific_df_pl.to_pandas()
+            del sex_specific_df_pl
+            gc.collect()
+            
+            print(f"  - Found {data_filtered[feature_col].nunique()} significant features for {sex}.")
             
             drive_fig_folder_id = g_helper.create_drive_folder(f"{tissue}_{sex}_figures", drive_run_folder_id)
             drive_artifact_folder_id = g_helper.create_drive_folder(f"{tissue}_{sex}_artifacts", drive_run_folder_id)
@@ -1403,6 +1419,7 @@ def main(config):
             # List all large objects created in the loop to be deleted
             vars_to_delete = [
                 'data_filtered',
+                # 'sex_specific_df_pl',
                 'all_clustering_results',
                 'processed_df', 
                 'optimal_result',
@@ -1419,6 +1436,10 @@ def main(config):
             gc.collect()
             print("--- Memory cleanup complete ---")
             print(f"Memory usage after cleanup: {psutil.Process().memory_info().rss / 1024 / 1024:.2f} MB")
+
+        # After processing both sexes for a tissue, clear the full df
+        del full_df_pl
+        gc.collect()
 
     # --- Final Reporting ---
     print("\n--- Updating Google Slides Presentation ---")
