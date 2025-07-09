@@ -16,11 +16,11 @@ from gprofiler import GProfiler
 from wordcloud import WordCloud
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import Normalize
-from datetime import date
+from datetime import date, datetime
 
 from ..google_utils import GoogleCloudHelper
 
-RUN_DATE = date.today().isoformat()
+RUN_DATE = datetime.now().strftime('%Y-%m-%d-%H%M')
 
 print(f"Polars version: {pl.__version__}")
 
@@ -724,7 +724,7 @@ def run_pathway_enrichment(feature_ids, labels, optimal_k, gene_lookup_buffer, c
     print(f"\nProcessing {len(unique_clustered_features_df)} unique features for pathway enrichment.")
 
     # Load gene lookup data
-    gene_cols_to_use = ['feature_id', 'geneId', 'gene_name', 'short_annotation']
+    gene_cols_to_use = ['ptm_id', 'gene_symbol']
     try:
         print(f"\nLoading gene lookup data from buffer.")
         gene_lookup_buffer.seek(0)
@@ -748,12 +748,12 @@ def run_pathway_enrichment(feature_ids, labels, optimal_k, gene_lookup_buffer, c
         unique_clustered_features_df,
         gene_lookup_df,
         left_on=config["columns"]["feature_id"],
-        right_on='feature_id',
+        right_on='ptm_id',
         how='left'
     )
     print("\nMerged clustered features with gene data.")
-    if 'geneId' not in merged_df.columns:
-        merged_df['geneId'] = pd.NA
+    if 'gene_symbol' not in merged_df.columns:
+        merged_df['gene_symbol'] = pd.NA
 
     # Save merged df with gene info
     if local_artifact_dir and export_local_csv:
@@ -783,7 +783,7 @@ def run_pathway_enrichment(feature_ids, labels, optimal_k, gene_lookup_buffer, c
     
     for cluster_id in sorted(merged_df['cluster_assignment'].unique()):
         print(f"\nPerforming pathway enrichment for Cluster {cluster_id}...")
-        genes_in_cluster = merged_df[merged_df['cluster_assignment'] == cluster_id]['geneId'].dropna().astype(str).tolist()
+        genes_in_cluster = merged_df[merged_df['cluster_assignment'] == cluster_id]['gene_symbol'].dropna().astype(str).tolist()
 
         if not genes_in_cluster:
             print(f"No genes found for Cluster {cluster_id}. Skipping enrichment.")

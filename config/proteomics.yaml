@@ -26,7 +26,7 @@ tissue_files:
 analysis_params:
   significance_threshold: 0.05
   clustering:
-    k_start: 3
+    k_start: 2
     k_end: 15
     fuzziness: 1.5
     use_precomputed_seeds: false
@@ -40,7 +40,7 @@ analysis_params:
   pathway_enrichment:
     term_size_min: 0
     term_size_max: 4000
-    top_n_pathways: 75
+    top_n_pathways: 7500
     
 columns:
   p_value_adj: "adj_p_value"
