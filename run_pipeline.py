@@ -35,6 +35,9 @@ if __name__ == "__main__":
         print("Starting ATAC Temporal Clustering Pipeline...")
         atac.main(config) 
         print("Pipeline finished successfully.")
-        # add rna pipeline here
+    elif args.pipeline_config == 'proteomics':
+        print("Starting Proteomics Pipeline...")
+        proteomics.main(config)
+        print("Pipeline finished successfully.")
     else:
         print(f"Error: Unknown pipeline '{args.pipeline_config}'")
