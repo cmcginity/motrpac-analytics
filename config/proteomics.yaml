@@ -30,13 +30,25 @@ analysis_params:
     k_end: 15
     fuzziness: 1.5
     use_precomputed_seeds: false
-    num_random_seeds: 15
-    explicit_seeds: [19805, 15184, 98839, 23642, 57386, 6259, 55376, 9620, 88540, 57914, 55293, 96857, 7553, 82196, 20470, 96857, 72936, 72936, 26744, 99338, 60150, 55293, 7553, 90714, 60218, 59272]
+    num_random_seeds: 10
+    explicit_seeds: [] #[97664, 97280, 23680, 7553, 6661, 59272, 25232, 99601, 21392, 82196, 9620, 55189, 98839, 45974, 92185, 24729, 87195, 93471, 47007, 82854, 13736, 57386, 37036, 17583, 31410, 32436, 14517, 67256, 31676, 79165, 5568, 13644, 90703, 40272, 74833, 30802, 33107, 23642, 19805, 96990, 58080, 56033, 15201, 72936, 85356, 89582, 79728, 83962, 55291, 26492, 40703]
     explicit_cluster_choice:
-      # male:
-      #   liver: 9
-      # female:
-      #   liver: 4
+      male: 
+        # {}
+        liver: 7
+        kidney: 4
+        lung: 6
+        gastrocnemius: 9
+        heart: 8
+        white-adipose: 9
+      female:
+        # {}
+        liver: 6
+        kidney: 4
+        lung: 6
+        gastrocnemius: 7
+        heart: 7
+        white-adipose: 6
   pathway_enrichment:
     term_size_min: 0
     term_size_max: 4000

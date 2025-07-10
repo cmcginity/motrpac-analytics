@@ -61,13 +61,11 @@ def load_and_preprocess_data(file_buffer, config):
 
         # 2. Derive timepoint from the 'contrast' column.
         df_pl = df_pl.with_columns(
-            pl.col("contrast")
+            pl.col("contrast") # acute_00.0h_IPE-control_00.0h_IPE.male
             .str.split("-")
             .list.get(0)
             .str.split("acute_")
             .list.get(1)
-            .str.split("_pass") # acute_00.0h_IPE_pass1a_female-control_00.0h_IPE_pass1c_female
-            .list.get(0)
             .alias("timepoint")
         ) 
         
@@ -725,7 +723,7 @@ def run_pathway_enrichment(feature_ids, labels, optimal_k, gene_lookup_buffer, c
     print(f"\nProcessing {len(unique_clustered_features_df)} unique features for pathway enrichment.")
 
     # Load gene lookup data
-    gene_cols_to_use = ['ptm_id', 'gene_symbol']
+    gene_cols_to_use = ['feature_id', 'gene_symbol']
     try:
         print(f"\nLoading gene lookup data from buffer.")
         gene_lookup_buffer.seek(0)

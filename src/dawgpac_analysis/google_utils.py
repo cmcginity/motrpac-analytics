@@ -1,6 +1,8 @@
 import io
 import os
-import pickle
+# import pickle
+import time
+import random
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -101,11 +103,23 @@ class GoogleCloudHelper:
         buffer.seek(0)
         file_metadata = {'name': file_name, 'parents': [folder_id]}
         media = MediaIoBaseUpload(buffer, mimetype=mimetype, resumable=True)
-        file = self.drive_service.files().create(
+        request = self.drive_service.files().create(
             body=file_metadata, media_body=media, fields='id, webContentLink'
-        ).execute()
-        print(f"Uploaded '{file_name}' to Drive. ID: {file.get('id')}")
-        return file
+        )        # Implement retry logic with exponential backoff for timeouts
+        max_retries = 3
+        for i in range(max_retries):
+            try:
+                file = request.execute()
+                print(f"Uploaded '{file_name}' to Drive. ID: {file.get('id')}")
+                return file
+            except TimeoutError:
+                if i < max_retries - 1:
+                    wait_time = (2 ** i) + random.random()
+                    print(f"--> TimeoutError on '{file_name}'. Retrying in {wait_time:.2f}s... (Attempt {i+1}/{max_retries})")
+                    time.sleep(wait_time)
+                else:
+                    print(f"--> TimeoutError on '{file_name}'. Max retries exceeded.")
+                    raise
 
     def replace_image_in_slides(self, presentation_id, image_url, placeholder_text):
         """Finds a shape with placeholder text and replaces it with an image."""

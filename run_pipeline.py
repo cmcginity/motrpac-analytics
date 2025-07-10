@@ -2,7 +2,7 @@ import yaml
 import argparse
 import os
 from dotenv import load_dotenv
-from src.dawgpac_analysis.temporal_clustering import atac
+from src.dawgpac_analysis.temporal_clustering import atac, prot_ph, rna
 
 def load_config(pipeline_name):
     """Loads default and pipeline-specific configs and merges them."""
@@ -32,12 +32,16 @@ if __name__ == "__main__":
     config['gcs_bucket_name'] = os.getenv('GCS_BUCKET_NAME')
 
     if args.pipeline_config == 'temporal_clustering':
-        print("Starting ATAC Temporal Clustering Pipeline...")
+        print("Starting ATACseq Temporal Clustering Pipeline...")
         atac.main(config) 
         print("Pipeline finished successfully.")
     elif args.pipeline_config == 'proteomics':
         print("Starting Proteomics Pipeline...")
-        proteomics.main(config)
+        prot_ph.main(config)
+        print("Pipeline finished successfully.")
+    elif args.pipeline_config == 'rna':
+        print("Starting RNAseq Pipeline...")
+        rna.main(config)
         print("Pipeline finished successfully.")
     else:
         print(f"Error: Unknown pipeline '{args.pipeline_config}'")
