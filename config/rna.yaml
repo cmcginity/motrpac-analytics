@@ -5,64 +5,61 @@ gcs_paths:
 tissue_files:
   liver:
     da_file: "rat-acute-06_t68-liver_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
-    feature_map_file: "rat-acute-06_t68-liver_transcript-rna-seq_metadata_features_v1.0.txt"
+    feature_map_file: "rat-acute-06_t68-liver_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
   kidney:
     da_file: "rat-acute-06_t59-kidney_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
-    feature_map_file: "rat-acute-06_t59-kidney_transcript-rna-seq_metadata_features_v1.0.txt"
+    feature_map_file: "rat-acute-06_t59-kidney_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
   lung:
     da_file: "rat-acute-06_t66-lung_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
-    feature_map_file: "rat-acute-06_t66-lung_transcript-rna-seq_metadata_features_v1.0.txt"
+    feature_map_file: "rat-acute-06_t66-lung_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
   gastrocnemius:
     da_file: "rat-acute-06_t55-gastrocnemius_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
-    feature_map_file: "rat-acute-06_t55-gastrocnemius_transcript-rna-seq_metadata_features_v1.0.txt"
+    feature_map_file: "rat-acute-06_t55-gastrocnemius_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
   heart:
     da_file: "rat-acute-06_t58-heart_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
-    feature_map_file: "rat-acute-06_t58-heart_transcript-rna-seq_metadata_features_v1.0.txt"
+    feature_map_file: "rat-acute-06_t58-heart_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
   white-adipose:
     da_file: "rat-acute-06_t70-white-adipose_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
-    feature_map_file: "rat-acute-06_t70-white-adipose_transcript-rna-seq_metadata_features_v1.0.txt"
+    feature_map_file: "rat-acute-06_t70-white-adipose_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
   brown-adipose:
-    da_file: "rat-acute-06_t71-brown-adipose_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
-    feature_map_file: "rat-acute-06_t71-brown-adipose_transcript-rna-seq_metadata_features_v1.0.txt"
+    da_file: "rat-acute-06_t69-brown-adipose_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
+    feature_map_file: "rat-acute-06_t69-brown-adipose_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
   blood-rna:
     da_file: "rat-acute-06_t30-blood-rna_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
     feature_map_file: "rat-acute-06_t30-blood-rna_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
   hippocampus:
-    da_file: "rat-acute-06_t73-hippocampus_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
-    feature_map_file: "rat-acute-06_t73-hippocampus_transcript-rna-seq_metadata_features_v1.0.txt"
+    da_file: "rat-acute-06_t52-hippocampus_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
+    feature_map_file: "rat-acute-06_t52-hippocampus_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
   hypothalamus:
-    da_file: "rat-acute-06_t74-hypothalamus_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
-    feature_map_file: "rat-acute-06_t74-hypothalamus_transcript-rna-seq_metadata_features_v1.0.txt"
+    da_file: "rat-acute-06_t54-hypothalamus_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
+    feature_map_file: "rat-acute-06_t54-hypothalamus_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
   cortex:
-    da_file: "rat-acute-06_t75-cortex_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
-    feature_map_file: "rat-acute-06_t75-cortex_transcript-rna-seq_metadata_features_v1.0.txt"
-  hippocampus:
-    da_file: "rat-acute-06_t76-hippocampus_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
-    feature_map_file: "rat-acute-06_t76-hippocampus_transcript-rna-seq_metadata_features_v1.0.txt"
+    da_file: "rat-acute-06_t53-cortex_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
+    feature_map_file: "rat-acute-06_t53-cortex_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
   vastus-lateralis:
-    da_file: "rat-acute-06_t77-vastus-lateralis_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
-    feature_map_file: "rat-acute-06_t77-vastus-lateralis_transcript-rna-seq_metadata_features_v1.0.txt"
+    da_file: "rat-acute-06_t56-vastus-lateralis_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
+    feature_map_file: "rat-acute-06_t56-vastus-lateralis_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
   adrenal:
-    da_file: "rat-acute-06_t78-adrenal_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
-    feature_map_file: "rat-acute-06_t78-adrenal_transcript-rna-seq_metadata_features_v1.0.txt"
+    da_file: "rat-acute-06_t60-adrenal_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
+    feature_map_file: "rat-acute-06_t60-adrenal_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
   colon:
-    da_file: "rat-acute-06_t79-colon_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
-    feature_map_file: "rat-acute-06_t79-colon_transcript-rna-seq_metadata_features_v1.0.txt"
+    da_file: "rat-acute-06_t61-colon_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
+    feature_map_file: "rat-acute-06_t61-colon_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
   spleen:
-    da_file: "rat-acute-06_t80-spleen_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
-    feature_map_file: "rat-acute-06_t80-spleen_transcript-rna-seq_metadata_features_v1.0.txt"
+    da_file: "rat-acute-06_t62-spleen_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
+    feature_map_file: "rat-acute-06_t62-spleen_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
   testes:
-    da_file: "rat-acute-06_t81-testes_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
-    feature_map_file: "rat-acute-06_t81-testes_transcript-rna-seq_metadata_features_v1.0.txt"
+    da_file: "rat-acute-06_t63-testes_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
+    feature_map_file: "rat-acute-06_t63-testes_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
   overies:
-    da_file: "rat-acute-06_t82-ovaries_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
-    feature_map_file: "rat-acute-06_t82-ovaries_transcript-rna-seq_metadata_features_v1.0.txt"
+    da_file: "rat-acute-06_t64-ovaries_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
+    feature_map_file: "rat-acute-06_t64-ovaries_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
   small-intestine:
-    da_file: "rat-acute-06_t83-small-intestine_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
-    feature_map_file: "rat-acute-06_t83-small-intestine_transcript-rna-seq_metadata_features_v1.0.txt"
+    da_file: "rat-acute-06_t67-small-intestine_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
+    feature_map_file: "rat-acute-06_t67-small-intestine_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
   aorta:
-    da_file: "rat-acute-06_t84-aorta_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
-    feature_map_file: "rat-acute-06_t84-aorta_transcript-rna-seq_metadata_features_v1.0.txt"
+    da_file: "rat-acute-06_t65-aorta_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
+    feature_map_file: "rat-acute-06_t65-aorta_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
   # ... add other tissues here ...
 
 analysis_params:

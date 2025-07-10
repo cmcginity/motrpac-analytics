@@ -734,6 +734,12 @@ def run_pathway_enrichment(feature_ids, labels, optimal_k, gene_lookup_buffer, c
             engine='python',
         )
         print("\nGene lookup data loaded successfully.")
+
+        # Filter out rows where gene_symbol is just a repeat of feature_id
+        initial_count = len(gene_lookup_df)
+        gene_lookup_df = gene_lookup_df[gene_lookup_df['feature_id'] != gene_lookup_df['gene_symbol']]
+        print(f"  - Filtered out {initial_count - len(gene_lookup_df)} rows where gene_symbol matched feature_id.")
+
     except FileNotFoundError:
         print(f"Error: Gene lookup file not found.")
         return {}
@@ -747,7 +753,7 @@ def run_pathway_enrichment(feature_ids, labels, optimal_k, gene_lookup_buffer, c
         unique_clustered_features_df,
         gene_lookup_df,
         left_on=config["columns"]["feature_id"],
-        right_on='ptm_id',
+        right_on='feature_id',
         how='left'
     )
     print("\nMerged clustered features with gene data.")
@@ -1121,9 +1127,9 @@ def plot_trajectories_with_wordclouds(data_with_clusters, processed_df, centroid
 
 def main(config):
     """
-    Main function to run the Phosphoproteomics temporal clustering pipeline.
+    Main function to run the RNA-seq temporal clustering pipeline.
     """
-    print("Starting Proteomics-PH Temporal Clustering Pipeline...")
+    print("Starting RNA-seq Temporal Clustering Pipeline...")
     
     # Read the new project ID from the config dictionary
     gcs_project_id = config.get('personal_gcp_project_id')
@@ -1135,7 +1141,7 @@ def main(config):
 
     # Create top-level output folder in Google Drive
     drive_run_folder_id = g_helper.create_drive_folder(
-        f"{RUN_DATE}_prot-ph_temporal_clustering",
+        f"{RUN_DATE}_transcript-rna-seq_temporal_clustering",
         config['drive']['root_output_folder_id']
     )
     print(f"Created main output folder in Google Drive with ID: {drive_run_folder_id}")
