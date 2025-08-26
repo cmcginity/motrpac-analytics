@@ -296,6 +296,12 @@ def preprocess_data_for_clustering(df):
     
     # Sort by timepoint to ensure correct column order after pivot
     timepoints = sorted(df[timepoint_col].unique())
+
+    # Normalize logFC per feature (overwrite the column for minimal changes)
+    print(f"  - Normalizing {log2fc_col} per {feature_col} before pivoting...")
+    df[log2fc_col] = df.groupby(feature_col)[log2fc_col].transform(
+        lambda x: StandardScaler().fit_transform(x.values.reshape(-1, 1)).flatten()
+    )
     
     print(f"  - Pivoting data for clustering...")
     pivot_df = df.pivot_table(

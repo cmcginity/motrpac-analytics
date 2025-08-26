@@ -3,15 +3,15 @@ gcs_paths:
   feature_map_data: "rat-acute-06/epigenomics/metadata"
 
 tissue_files:
-  # liver:
-  #   da_file: "rat-acute-06_t68-liver_epigen-atac-seq_da_timewise-deseq2-phase-frip-t2f-exercise_v1.0.txt"
-  #   feature_map_file: "rat-acute-06_t68-liver_epigen-atac-seq_metadata_features_v1.0.txt"
-  # kidney:
-  #   da_file: "rat-acute-06_t59-kidney_epigen-atac-seq_da_timewise-deseq2-phase-frip-t2f-exercise_v1.0.txt"
-  #   feature_map_file: "rat-acute-06_t59-kidney_epigen-atac-seq_metadata_features_v1.0.txt"
-  # lung:
-  #   da_file: "rat-acute-06_t66-lung_epigen-atac-seq_da_timewise-deseq2-phase-frip-t2f-exercise_v1.0.txt"
-  #   feature_map_file: "rat-acute-06_t66-lung_epigen-atac-seq_metadata_features_v1.0.txt"
+  liver:
+    da_file: "rat-acute-06_t68-liver_epigen-atac-seq_da_timewise-deseq2-phase-frip-t2f-exercise_v1.0.txt"
+    feature_map_file: "rat-acute-06_t68-liver_epigen-atac-seq_metadata_features_v1.0.txt"
+  kidney:
+    da_file: "rat-acute-06_t59-kidney_epigen-atac-seq_da_timewise-deseq2-phase-frip-t2f-exercise_v1.0.txt"
+    feature_map_file: "rat-acute-06_t59-kidney_epigen-atac-seq_metadata_features_v1.0.txt"
+  lung:
+    da_file: "rat-acute-06_t66-lung_epigen-atac-seq_da_timewise-deseq2-phase-frip-t2f-exercise_v1.0.txt"
+    feature_map_file: "rat-acute-06_t66-lung_epigen-atac-seq_metadata_features_v1.0.txt"
   # gastrocnemius:
   #   da_file: "rat-acute-06_t55-gastrocnemius_epigen-atac-seq_da_timewise-deseq2-phase-frip-t2f-exercise_v1.0.txt"
   #   feature_map_file: "rat-acute-06_t55-gastrocnemius_epigen-atac-seq_metadata_features_v1.0.txt"
@@ -21,9 +21,9 @@ tissue_files:
   # brown-adipose:
   #   da_file: "rat-acute-06_t69-brown-adipose_epigen-atac-seq_da_timewise-deseq2-phase-frip-t2f-exercise_v1.0.txt"
   #   feature_map_file: "rat-acute-06_t69-brown-adipose_epigen-atac-seq_metadata_features_v1.0.txt"
-  white-adipose:
-    da_file: "rat-acute-06_t70-white-adipose_epigen-atac-seq_da_timewise-deseq2-phase-frip-t2f-exercise_v1.0.txt"
-    feature_map_file: "rat-acute-06_t70-white-adipose_epigen-atac-seq_metadata_features_v1.0.txt"
+  # white-adipose:
+  #   da_file: "rat-acute-06_t70-white-adipose_epigen-atac-seq_da_timewise-deseq2-phase-frip-t2f-exercise_v1.0.txt"
+  #   feature_map_file: "rat-acute-06_t70-white-adipose_epigen-atac-seq_metadata_features_v1.0.txt"
   # ... add other tissues here ...
 
 analysis_params:
