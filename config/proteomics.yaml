@@ -37,18 +37,18 @@ analysis_params:
         # {}
         liver: 7
         kidney: 4
-        lung: 6
-        gastrocnemius: 9
+        lung: 3
+        gastrocnemius: 3
         heart: 8
-        white-adipose: 9
+        white-adipose: 4
       female:
         # {}
         liver: 6
         kidney: 4
-        lung: 6
-        gastrocnemius: 7
+        lung: 3
+        gastrocnemius: 3
         heart: 7
-        white-adipose: 6
+        white-adipose: 3
   pathway_enrichment:
     term_size_min: 0
     term_size_max: 4000

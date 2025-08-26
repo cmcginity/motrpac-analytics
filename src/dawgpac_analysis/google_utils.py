@@ -105,7 +105,8 @@ class GoogleCloudHelper:
         media = MediaIoBaseUpload(buffer, mimetype=mimetype, resumable=True)
         request = self.drive_service.files().create(
             body=file_metadata, media_body=media, fields='id, webContentLink'
-        )        # Implement retry logic with exponential backoff for timeouts
+        )
+        # Implement retry logic with exponential backoff for timeouts
         max_retries = 3
         for i in range(max_retries):
             try:
