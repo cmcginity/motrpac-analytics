@@ -314,9 +314,15 @@ def preprocess_data_for_clustering(df, config):
     # Sort by timepoint to ensure correct column order after pivot
     timepoints = sorted(df[timepoint_col].unique())    
 
-    # Normalize logFC per feature (overwrite the column for minimal changes)
-    print(f"  - Normalizing {log2fc_col} per {feature_col} before pivoting...")
-    df[log2fc_col] = df.groupby(feature_col)[log2fc_col].transform(
+    # # Normalize logFC per feature (overwrite the column for minimal changes)
+    # print(f"  - Normalizing {log2fc_col} per {feature_col} before pivoting...")
+    # df[log2fc_col] = df.groupby(feature_col)[log2fc_col].transform(
+    #     lambda x: StandardScaler().fit_transform(x.values.reshape(-1, 1)).flatten()
+    # )
+
+    # TEMP: Normalize to a new column for clustering, preserving original logFC for plots
+    print(f"  - Creating normalized column '{log2fc_col}_nmz' per {feature_col}...")
+    df[f"{log2fc_col}_nmz"] = df.groupby(feature_col)[log2fc_col].transform(
         lambda x: StandardScaler().fit_transform(x.values.reshape(-1, 1)).flatten()
     )
     
@@ -324,7 +330,8 @@ def preprocess_data_for_clustering(df, config):
     pivot_df = df.pivot_table(
         index=feature_col, 
         columns=timepoint_col, 
-        values=log2fc_col,
+        # values=log2fc_col,
+        values=f"{log2fc_col}_nmz",
     )
     
     # Reorder columns to be monotonically increasing timepoints
@@ -527,7 +534,7 @@ def plot_only_centroids(centroids, timepoints, optimal_k, config, tissue, sex, l
     plt.title(f'Cluster Centroids for {sex.capitalize()} {tissue.capitalize()} (n={optimal_k})')
     plt.xlabel('Timepoint')
     plt.ylabel('Log Fold Change')
-    plt.legend()
+    plt.legend(loc='upper right') # place legend in the top right corner
     plt.xticks(rotation=45)
     
     plt.tight_layout()
