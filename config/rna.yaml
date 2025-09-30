@@ -3,36 +3,36 @@ gcs_paths:
   feature_map_data: "rat-acute-06/transcriptomics/metadata"
 
 tissue_files:
-  # liver:
-  #   da_file: "rat-acute-06_t68-liver_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
-  #   feature_map_file: "rat-acute-06_t68-liver_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
-  # kidney:
-  #   da_file: "rat-acute-06_t59-kidney_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
-  #   feature_map_file: "rat-acute-06_t59-kidney_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
-  # lung:
-  #   da_file: "rat-acute-06_t66-lung_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
-  #   feature_map_file: "rat-acute-06_t66-lung_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
-  # gastrocnemius:
-  #   da_file: "rat-acute-06_t55-gastrocnemius_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
-  #   feature_map_file: "rat-acute-06_t55-gastrocnemius_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
-  # heart:
-  #   da_file: "rat-acute-06_t58-heart_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
-  #   feature_map_file: "rat-acute-06_t58-heart_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
-  # white-adipose:
-  #   da_file: "rat-acute-06_t70-white-adipose_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
-  #   feature_map_file: "rat-acute-06_t70-white-adipose_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
-  # brown-adipose:
-  #   da_file: "rat-acute-06_t69-brown-adipose_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
-  #   feature_map_file: "rat-acute-06_t69-brown-adipose_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
-  # blood-rna:
-  #   da_file: "rat-acute-06_t30-blood-rna_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
-  #   feature_map_file: "rat-acute-06_t30-blood-rna_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
-  # hippocampus:
-  #   da_file: "rat-acute-06_t52-hippocampus_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
-  #   feature_map_file: "rat-acute-06_t52-hippocampus_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
-  # hypothalamus:
-  #   da_file: "rat-acute-06_t54-hypothalamus_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
-  #   feature_map_file: "rat-acute-06_t54-hypothalamus_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
+  liver:
+    da_file: "rat-acute-06_t68-liver_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
+    feature_map_file: "rat-acute-06_t68-liver_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
+  kidney:
+    da_file: "rat-acute-06_t59-kidney_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
+    feature_map_file: "rat-acute-06_t59-kidney_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
+  lung:
+    da_file: "rat-acute-06_t66-lung_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
+    feature_map_file: "rat-acute-06_t66-lung_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
+  gastrocnemius:
+    da_file: "rat-acute-06_t55-gastrocnemius_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
+    feature_map_file: "rat-acute-06_t55-gastrocnemius_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
+  heart:
+    da_file: "rat-acute-06_t58-heart_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
+    feature_map_file: "rat-acute-06_t58-heart_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
+  white-adipose:
+    da_file: "rat-acute-06_t70-white-adipose_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
+    feature_map_file: "rat-acute-06_t70-white-adipose_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
+  brown-adipose:
+    da_file: "rat-acute-06_t69-brown-adipose_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
+    feature_map_file: "rat-acute-06_t69-brown-adipose_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
+  blood-rna:
+    da_file: "rat-acute-06_t30-blood-rna_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
+    feature_map_file: "rat-acute-06_t30-blood-rna_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
+  hippocampus:
+    da_file: "rat-acute-06_t52-hippocampus_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
+    feature_map_file: "rat-acute-06_t52-hippocampus_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
+  hypothalamus:
+    da_file: "rat-acute-06_t54-hypothalamus_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
+    feature_map_file: "rat-acute-06_t54-hypothalamus_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
   cortex:
     da_file: "rat-acute-06_t53-cortex_transcript-rna-seq_da_timewise-limma-bc-t2f-exercise_v1.0.txt"
     feature_map_file: "rat-acute-06_t53-cortex_transcript-rna-seq_metadata_features-exercise_v1.0.txt"
