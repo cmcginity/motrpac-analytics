@@ -8,16 +8,23 @@ def combine_and_export(file_list, output_path, format='csv', mini=False, common_
         return
     
     df_list = []
+    total_input_rows = 0
+    
     for f in file_list:
         if format == 'csv':
-            df = pl.read_csv(f)
+            df = pl.read_csv(f, infer_schema_length=0)  # Read all as String to avoid parse issues
         elif format == 'parquet':
             df = pl.read_parquet(f)
         else:
             raise ValueError(f"Unsupported format: {format}")
         
-        # Cast all columns to String for consistency
-        df = df.with_columns([pl.col(c).cast(pl.String) for c in df.columns])
+        # Manual casting for numeric columns (add more as needed; use strict=False to handle non-numeric gracefully)
+        numeric_cols = ['logFC', 'logFC_se', 't_stat', 'AveExpr', 'p_value', 'adj_p_value', 'w_stat']  # From your sample
+        for col in numeric_cols:
+            if col in df.columns:
+                df = df.with_columns(pl.col(col).cast(pl.Float64, strict=False))
+        
+        total_input_rows += df.height
         
         if mini and common_cols:
             # Select only existing common columns (ignore missing)
@@ -29,14 +36,20 @@ def combine_and_export(file_list, output_path, format='csv', mini=False, common_
     if mini:
         combined_df = pl.concat(df_list, how='vertical')
     else:
-        combined_df = pl.concat(df_list, how='diagonal')
+        combined_df = pl.concat(df_list, how='diagonal_relaxed')  # Handles missing cols with nulls, promotes dtypes; revisit
+    
+    # Row count check
+    if combined_df.height != total_input_rows:
+        print(f"Warning: Row count mismatch for {output_path}! Expected {total_input_rows}, got {combined_df.height}")
+    else:
+        print(f"Row count validated for {output_path}: {combined_df.height} rows")
     
     if format == 'csv':
         combined_df.write_csv(output_path)
     elif format == 'parquet':
         combined_df.write_parquet(output_path)
     
-    print(f"Exported combined file to {output_path}")
+    print(f"  - Exported combined file to {output_path}")
 
 def main(format='csv'):
     base_dir = 'data/_filtered'
