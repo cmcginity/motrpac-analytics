@@ -1,2 +1,26 @@
-**/data/
+# Ignore any .DS_Store file
 .DS_Store
+
+# Ignore "data/" directories at root and recursively
+/data/
+/**/data/
+/output/
+/**output/
+
+# Ignore any temp files
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+
+# Ignore private files
+.env
+.cursor*
+/planning/
+
+
+# Ignore google auth files
+secrets/
+token.json
+credentials.json
+
+

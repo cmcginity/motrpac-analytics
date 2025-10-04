@@ -1,0 +1,19 @@
+name: motrpac_analysis
+channels:
+  - bioconda
+  - defaults
+dependencies:
+  - python=3.10
+  - seaborn
+  - matplotlib
+  - numpy
+  - polars
+  - pandas
+  - scikit-fuzzy
+  - scikit-learn
+  - pyyaml
+  - wordcloud
+  - gprofiler-official
+  - pyarrow
+  - psutil
+prefix: /Users/curtismcginity/anaconda3/envs/motrpac_analysis
