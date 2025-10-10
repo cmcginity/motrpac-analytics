@@ -10,7 +10,7 @@ with open(config_path, 'r') as f:
     config = yaml.safe_load(f)
 
 # Load combined DA
-combined_path = os.path.join(project_root, 'data/_feast-human/da_filtered/combined_cancer_da.parquet')
+combined_path = os.path.join(project_root, 'data/_feast-human/da_filtered/pancreatic_overlap.parquet')
 combined_df = pd.read_parquet(combined_path)
 
 # Extract timepoint if not already (from Step 4 example)
@@ -21,12 +21,14 @@ if 'timepoint' not in combined_df.columns and 'contrast' in combined_df.columns:
 threshold = config['analysis_params']['significance_threshold']
 
 # Filter significant features (optional thresholding)
-significant_df = combined_df[(combined_df[config['columns']['p_value_adj']] < threshold)]  # Add |logFC| > x if needed
+significant_df = combined_df
 
-# Get unique groups (e.g., timepoints)
-groups = significant_df['timepoint'].unique() if 'timepoint' in significant_df.columns else ['overall']
-if 'overall' in groups:
-    groups = ['overall']  # Or include per timepoint
+# # Get unique groups (e.g., timepoints)
+# groups = significant_df['timepoint'].unique() if 'timepoint' in significant_df.columns else ['overall']
+# if 'overall' in groups:
+#     groups = ['overall']  # Or include per timepoint
+
+groups = ['overall']
 
 # Initialize GProfiler
 gp = GProfiler(return_dataframe=True, user_agent='feast_precawg_analysis')
@@ -70,12 +72,8 @@ for group, df in enrichment_results.items():
 # Combine and export
 if processed_results:
     all_enrichment = pd.concat(processed_results.values(), ignore_index=True)
-    output_path = os.path.join(project_root, 'data/_feast-human/enrichment_results.csv')
+    enrich_dir = os.path.join(project_root, 'data/_feast-human/enrich')
+    os.makedirs(enrich_dir, exist_ok=True)
+    output_path = os.path.join(enrich_dir, 'enrichment_results.csv')
     all_enrichment.to_csv(output_path, index=False)
     print(f"Exported enrichment results to {output_path}")
-
-# Optional: Pancreatic-specific
-if 'is_pancreatic' in combined_df.columns and combined_df['is_pancreatic'].notna().any():
-    panc_df = combined_df[combined_df['is_pancreatic'].notna()]
-    # Repeat the above process for panc_df, export to pancreatic_enrichment_results.csv
-    # Omitted for brevity; implement similarly if needed

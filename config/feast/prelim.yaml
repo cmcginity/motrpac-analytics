@@ -1,11 +1,12 @@
-human_cancer_mapping_file: "/Users/curtismcginity/stanford/research/proj/MoTrPAC/dev/data/_feast-human/mapping/cancer_hallmark_multi-omic_v04.csv"
+# human_cancer_mapping_file: "/Users/curtismcginity/stanford/research/proj/MoTrPAC/dev/data/_feast-human/mapping/pgac_markers.csv"
+human_cancer_mapping_file: "/Users/curtismcginity/stanford/research/proj/MoTrPAC/dev/data/_feast-human/mapping/gcd_pdac_2025-10-10.tsv"
 
 human_feature_to_gene_file: "pre-cawg/staging_20250311/human-precovid-sed-adu/latest/resources/motrpac-mappings-human-feature-to-gene.txt"
 
 gcs_paths:
   proteomics:
     da_data: "pre-cawg/staging_20250311/human-precovid-sed-adu/latest/proteomics/da"
-    feature_map_data: "pre-cawg/staging_20250311/human-precovid-sed-adu/latest/proteomics/metadata"
+    # feature_map_data: "pre-cawg/staging_20250311/human-precovid-sed-adu/latest/proteomics/metadata"
   atac:
     da_data: "pre-cawg/staging_20250311/human-precovid-sed-adu/latest/epigenomics/da"
     # feature_map_data: "pre-cawg/staging_20250311/human-precovid-sed-adu/latest/epigenomics/metadata"
@@ -16,7 +17,7 @@ gcs_paths:
 blood_files:
   proteomics:
     da_file: "human-precovid-sed-adu_t02-plasma_prot-ol_da_dream-acute_v1.2.txt"
-    feature_map_file: "human-precovid-sed-adu_t02-plasma_prot-ol_metadata_features_v1.2.txt"
+    # feature_map_file: "human-precovid-sed-adu_t02-plasma_prot-ol_metadata_features_v1.2.txt"
   atac:
     da_file: "human-precovid-sed-adu_t05-pbmc_epigen-atac-seq_da_dream-acute_v1.2.txt"
     # feature_map_file: "human-precovid-sed-adu_t05-pbmc_epigen-atac-seq_metadata_features_v1.2.txt"

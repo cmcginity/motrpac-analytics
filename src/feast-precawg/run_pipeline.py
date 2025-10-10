@@ -11,9 +11,10 @@ scripts_dir = os.path.join(project_root, 'src/feast-precawg')
 
 # List of scripts in order (Steps 2-6)
 scripts = [
-    'merge_mappings.py',
-    'filter_da_datasets.py',
-    'combine_filtered_da.py',
+    # 'process_feature_to_gene.py',
+    # 'filter_da_datasets.py',
+    # 'combine_filtered_da.py',
+    'merge_cancer.py',
     'perform_enrichment.py',
     'plot_enrichment.py'
 ]

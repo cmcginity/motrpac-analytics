@@ -3,28 +3,39 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import json
+from matplotlib_venn import venn2, venn2_circles
+from matplotlib import pyplot as plt
+from datetime import datetime
 
 # Project root
 project_root = '/Users/curtismcginity/stanford/research/proj/MoTrPAC/dev'
 
 # Load enrichment results
-enrichment_path = os.path.join(project_root, 'data/_feast-human/enrichment_results.csv')
+enrichment_path = os.path.join(project_root, 'data/_feast-human/enrich/enrichment_results.csv')
 enrichment_df = pd.read_csv(enrichment_path)
 
 # Output directory
-output_dir = os.path.join(project_root, 'output/figures/cancer_enrichment')
+RUN_DATE = datetime.now().strftime('%Y-%m-%d-%H%M')
+output_dir = os.path.join(project_root, f'output_feast/plots/{RUN_DATE}_pdac_enrich')
 os.makedirs(output_dir, exist_ok=True)
 
 # Adapted from notebook: Bar plot for top pathways (per group if applicable)
 def plot_top_enrichment_pathways(df, n_top=15, title="Top Enriched Pathways", save_path=None):
-    df = df.sort_values('p_value').head(n_top)
+    # Sort by significance and ensure unique pathway names to avoid implicit aggregation
+    df = df.sort_values('p_value').drop_duplicates(subset=['name'], keep='first').head(n_top)
     df['neg_log10_p'] = -np.log10(df['p_value'] + 1e-10)
     
     sns.set_style("whitegrid")
     sns.set_context("talk")
     fig, ax = plt.subplots(figsize=(10, 8))
     palette = sns.color_palette("YlOrRd_r", n_colors=n_top)
-    sns.barplot(x='neg_log10_p', y='name', data=df, palette=palette, orient='h', ax=ax)
+    # Disable error bars to prevent small horizontal lines at bar tips (seaborn may add CIs)
+    try:
+        sns.barplot(x='neg_log10_p', y='name', data=df, palette=palette, orient='h', ax=ax, errorbar=None)
+    except TypeError:
+        # Fallback for older seaborn versions
+        sns.barplot(x='neg_log10_p', y='name', data=df, palette=palette, orient='h', ax=ax, ci=None)
     ax.set_xlabel(r'$-\log_{10}(P)$', fontsize=14)
     ax.set_ylabel('')
     ax.set_title(title, fontsize=16, weight='bold', pad=20)
@@ -69,5 +80,43 @@ if os.path.exists(panc_path):
     panc_df = pd.read_csv(panc_path)
     panc_save_path = os.path.join(output_dir, 'top_pathways_pancreatic.png')
     plot_top_enrichment_pathways(panc_df, title="Top Pathways: Pancreatic", save_path=panc_save_path)
+
+# Load Venn counts and generate professional Venn diagram (optional if matplotlib_venn installed)
+json_path = os.path.join(project_root, 'data/_feast-human/stats/venn_counts.json')
+with open(json_path, 'r') as f:
+    venn_counts = json.load(f)
+
+total = venn_counts['total_significant_genes']
+cancer = venn_counts['cancer_genes']
+overlap = venn_counts['overlap_genes']
+
+# Compute set sizes for venn2: (only A, only B, intersection)
+only_significant = total - overlap
+only_cancer = cancer - overlap
+
+plt.figure(figsize=(8, 8))
+v = venn2(subsets=(only_significant, only_cancer, overlap), set_labels=('Significant Genes', 'Cancer Genes'))
+venn2_circles(subsets=(only_significant, only_cancer, overlap), linestyle='solid', linewidth=1)
+
+# Style to mimic ggVennDiagram: clean, with colors
+for text in v.set_labels:
+    text.set_fontsize(14)
+for text in v.subset_labels:
+    if text:
+        text.set_fontsize(12)
+v.get_patch_by_id('10').set_color('skyblue')
+v.get_patch_by_id('01').set_color('lightgreen')
+v.get_patch_by_id('11').set_color('mediumseagreen')
+for p in v.patches:
+    if p:
+        p.set_edgecolor('black')
+        p.set_alpha(0.8)
+
+plt.title('Overlap of Significant Genes and Cancer Markers', fontsize=16)
+venn_path = os.path.join(output_dir, 'venn_diagram.png')
+plt.savefig(venn_path, dpi=300, bbox_inches='tight')
+plt.close()
+print(f"Exported Venn diagram to {venn_path}")
+
 
 print(f"Plots saved to {output_dir}")
