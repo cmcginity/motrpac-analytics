@@ -15,6 +15,20 @@ project_root = '/Users/curtismcginity/stanford/research/proj/MoTrPAC/dev'
 enrichment_path = os.path.join(project_root, 'data/_feast-human/enrich/enrichment_results.csv')
 enrichment_df = pd.read_csv(enrichment_path)
 
+# Load pancreatic overlap data
+panc_overlap_path = os.path.join(project_root, 'data/_feast-human/da_filtered/pancreatic_overlap.parquet')
+panc_overlap_df = pd.read_parquet(panc_overlap_path)
+
+# Handle edge cases: Check for required columns
+if 'gene_symbol' not in panc_overlap_df.columns or 'logFC' not in panc_overlap_df.columns:
+    print("Warning: Missing 'gene_symbol' or 'logFC' columns in pancreatic_overlap.parquet. Skipping logFC plot.")
+    panc_overlap_df = pd.DataFrame()  # Empty DF to skip plotting
+else:
+    # Ensure unique gene_symbols by taking mean logFC if duplicates
+    panc_overlap_df = panc_overlap_df.groupby('gene_symbol')['logFC'].mean().reset_index()
+    # Sort by logFC ascending
+    panc_overlap_df = panc_overlap_df.sort_values('logFC')
+
 # Output directory
 RUN_DATE = datetime.now().strftime('%Y-%m-%d-%H%M')
 output_dir = os.path.join(project_root, f'output_feast/plots/{RUN_DATE}_pdac_enrich')
@@ -37,6 +51,57 @@ def plot_top_enrichment_pathways(df, n_top=15, title="Top Enriched Pathways", sa
         # Fallback for older seaborn versions
         sns.barplot(x='neg_log10_p', y='name', data=df, palette=palette, orient='h', ax=ax, ci=None)
     ax.set_xlabel(r'$-\log_{10}(P)$', fontsize=14)
+    ax.set_ylabel('')
+    ax.set_title(title, fontsize=16, weight='bold', pad=20)
+    ax.yaxis.tick_right()
+    fig.tight_layout()
+    
+    if save_path:
+        plt.savefig(save_path)
+    else:
+        plt.show()
+    plt.close()
+
+# New function for logFC bar chart
+def plot_logfc_bar_chart(df, n_top=None, title="LogFC for Pancreatic Overlap Genes", save_path=None):
+    if df.empty:
+        print("No data to plot for logFC bar chart.")
+        return
+    
+    # Optionally select top N by absolute logFC
+    if n_top is not None:
+        df = df.iloc[df['logFC'].abs().argsort()[-n_top:]]
+        df = df.sort_values('logFC')  # Re-sort after selection
+    
+    # Compute colors
+    neg_df = df[df['logFC'] < 0]
+    pos_df = df[df['logFC'] > 0]
+    
+    # Normalize negatives: more negative -> darker (0 to 1, where 1 is most negative)
+    if not neg_df.empty:
+        neg_norm = (neg_df['logFC'].abs() - neg_df['logFC'].abs().min()) / (neg_df['logFC'].abs().max() - neg_df['logFC'].abs().min() + 1e-10)
+        neg_norm = 1 - neg_norm  # Invert so more negative (larger abs) -> higher norm -> darker
+        neg_colors = sns.color_palette('Blues', len(neg_df))
+        neg_colors = [neg_colors[int(i * (len(neg_colors) - 1))] for i in neg_norm]
+    else:
+        neg_colors = []
+    
+    # Normalize positives: larger -> darker (0 to 1)
+    if not pos_df.empty:
+        pos_norm = (pos_df['logFC'] - pos_df['logFC'].min()) / (pos_df['logFC'].max() - pos_df['logFC'].min() + 1e-10)
+        pos_colors = sns.color_palette('YlOrRd_r', len(pos_df))
+        pos_colors = [pos_colors[int(i * (len(pos_colors) - 1))] for i in pos_norm]
+    else:
+        pos_colors = []
+    
+    # Combine colors in order of df
+    colors = neg_colors + [(0.5, 0.5, 0.5)] * (len(df) - len(neg_df) - len(pos_df)) + pos_colors  # Gray for zeros if any
+    
+    sns.set_style("whitegrid")
+    sns.set_context("talk")
+    fig, ax = plt.subplots(figsize=(10, max(8, len(df)/2)))
+    sns.barplot(x='logFC', y='gene_symbol', data=df, palette=colors, orient='h', ax=ax, errorbar=None)
+    ax.set_xlabel('logFC', fontsize=14)
     ax.set_ylabel('')
     ax.set_title(title, fontsize=16, weight='bold', pad=20)
     ax.yaxis.tick_right()
@@ -80,6 +145,10 @@ if os.path.exists(panc_path):
     panc_df = pd.read_csv(panc_path)
     panc_save_path = os.path.join(output_dir, 'top_pathways_pancreatic.png')
     plot_top_enrichment_pathways(panc_df, title="Top Pathways: Pancreatic", save_path=panc_save_path)
+
+# Generate logFC bar chart for pancreatic overlap
+logfc_save_path = os.path.join(output_dir, 'pancreatic_overlap_logfc.png')
+plot_logfc_bar_chart(panc_overlap_df, title="LogFC for Pancreatic Overlap Genes", save_path=logfc_save_path)
 
 # Load Venn counts and generate professional Venn diagram (optional if matplotlib_venn installed)
 json_path = os.path.join(project_root, 'data/_feast-human/stats/venn_counts.json')

@@ -14,9 +14,11 @@ scripts = [
     # 'process_feature_to_gene.py',
     # 'filter_da_datasets.py',
     # 'combine_filtered_da.py',
-    'merge_cancer.py',
-    'perform_enrichment.py',
-    'plot_enrichment.py'
+    # 'merge_cancer.py',
+    # 'perform_enrichment.py',
+    # 'plot_enrichment.py',
+    'hall_perform_enrichment.py',
+    'hall_plot_enrichment.py'
 ]
 
 def run_script(script_name):

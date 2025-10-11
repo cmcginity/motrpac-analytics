@@ -1,5 +1,5 @@
-# human_cancer_mapping_file: "/Users/curtismcginity/stanford/research/proj/MoTrPAC/dev/data/_feast-human/mapping/pgac_markers.csv"
-human_cancer_mapping_file: "/Users/curtismcginity/stanford/research/proj/MoTrPAC/dev/data/_feast-human/mapping/gcd_pdac_2025-10-10.tsv"
+human_cancer_mapping_file: "/Users/curtismcginity/stanford/research/proj/MoTrPAC/dev/data/_feast-human/mapping/pgac_markers.csv"
+# human_cancer_mapping_file: "/Users/curtismcginity/stanford/research/proj/MoTrPAC/dev/data/_feast-human/mapping/gcd_pdac_2025-10-10.tsv"
 
 human_feature_to_gene_file: "pre-cawg/staging_20250311/human-precovid-sed-adu/latest/resources/motrpac-mappings-human-feature-to-gene.txt"
 
