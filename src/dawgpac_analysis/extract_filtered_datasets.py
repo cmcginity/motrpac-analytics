@@ -153,7 +153,7 @@ def main():
     config['gcs_bucket_name'] = os.getenv('GCS_BUCKET_NAME')
     print(f"GCS bucket name: {config['gcs_bucket_name']}")
     
-    gcs_project_id = config.get('gcs_project_id')
+    gcs_project_id = config.get('gcs_project_id') #None for Stanford
     gcs_bucket_name = config['gcs_bucket_name']
     da_data_path = config['gcs_paths']['da_data']
     tissue_files = config['tissue_files']

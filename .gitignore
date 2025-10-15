@@ -6,6 +6,8 @@
 /**/data/
 /output/
 /**output/
+/output_feast/
+/**output_feast/
 
 # Ignore any temp files
 .ipynb_checkpoints/
