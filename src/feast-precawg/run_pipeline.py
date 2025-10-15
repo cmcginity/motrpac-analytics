@@ -17,7 +17,7 @@ scripts = [
     # 'merge_cancer.py',
     # 'perform_enrichment.py',
     # 'plot_enrichment.py',
-    'hall_perform_enrichment.py',
+    # 'hall_perform_enrichment.py',
     'hall_plot_enrichment.py'
 ]
 

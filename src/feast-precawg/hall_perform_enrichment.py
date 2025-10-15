@@ -16,14 +16,20 @@ combined_df = pd.read_parquet(combined_path)
 # Assume already filtered significant
 da_genes_df = combined_df
 
-# Compute average logFC per gene
-gene_logfc = da_genes_df.groupby('gene_symbol')['logFC'].mean().reset_index()
+# Compute average logFC per gene, excluding NaN gene_symbols
+gene_logfc = da_genes_df.dropna(subset=['gene_symbol']).groupby('gene_symbol')['logFC'].mean().reset_index()
 
-# Extract unique gene list
-gene_list = da_genes_df['gene_symbol'].unique().tolist()
+# Extract unique gene list, excluding NaN
+gene_list = da_genes_df['gene_symbol'].dropna().unique().tolist()
 
 # Perform enrichment
-enr = gp.enrichr(gene_list=gene_list, gene_sets="MSigDB_Hallmark_2020", organism='Human', outdir=None)
+enr = gp.enrichr(
+    gene_list=gene_list,
+    gene_sets="MSigDB_Hallmark_2020",
+    organism='Human',
+    cutoff=0.1,
+    outdir=None
+)
 results = enr.results
 
 # Filter significant
@@ -32,7 +38,9 @@ significant_results = results[results['Adjusted P-value'] < 0.05]
 # Add gene_count and avg_logFC
 significant_results['gene_count'] = significant_results['Genes'].apply(lambda x: len(x.split(';')))
 significant_results['avg_logFC'] = significant_results['Genes'].apply(
-    lambda x: gene_logfc[gene_logfc['gene_symbol'].isin(x.split(';'))]['logFC'].mean() if x else 0
+    lambda x: gene_logfc[gene_logfc['gene_symbol']
+    .isin(x.split(';'))]['logFC']
+    .mean() if x else 0
 )
 
 # Export
